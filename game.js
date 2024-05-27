@@ -1,4 +1,4 @@
-let visitsCount = 0; // Variável para contar as visitas às salas
+let visitsCount = 0; // Variable to count room visits
 let gameBoard = [];
 let agentPosition = { x: 0, y: 0 };
 const boardSize = 4;
@@ -6,11 +6,13 @@ const learningRate = 0.1;
 const discountFactor = 0.9;
 const explorationRate = 0.2;
 let QTable = {};
-let gameHistory = []; // Armazenará o histórico de cada partida
+let gameHistory = []; // Will store the history of each game
 
 document.addEventListener("DOMContentLoaded", () => {
   startGame();
-  setInterval(makeIntelligentMove, 1000); // Move a cada 1 segundo
+  setInterval(makeIntelligentMove, 1000); // Move every 1 second
+  document.getElementById("restartGame").addEventListener("click", startGame);
+  document.getElementById("showReport").addEventListener("click", showReport);
 });
 
 function startGame() {
@@ -22,7 +24,8 @@ function startGame() {
   placeItem("wumpus");
   placeMultipleItems("pit", 3);
   placeAgent();
-  visitsCount = 0; // Reinicia a contagem ao começar um novo jogo
+  visitsCount = 0; // Reset the visit count for the new game
+  displayMessage("Jogo iniciado. Boa sorte!");
 }
 
 function createBoard() {
@@ -46,7 +49,7 @@ function placeAgent() {
     `[data-x='${agentPosition.x}'][data-y='${agentPosition.y}']`
   );
   initialCell.appendChild(agent);
-  visitsCount++; // Incrementa na inicialização
+  visitsCount++; // Increment at initialization
 }
 
 function placeItem(type) {
@@ -99,39 +102,8 @@ function placeBreezes(x, y) {
   });
 }
 
-function moveAgent(direction) {
-  const movements = {
-    ArrowUp: { x: -1, y: 0 },
-    ArrowDown: { x: 1, y: 0 },
-    ArrowLeft: { x: 0, y: -1 },
-    ArrowRight: { x: 0, y: 1 },
-  };
-  const move = movements[direction];
-  const newX = agentPosition.x + move.x;
-  const newY = agentPosition.y + move.y;
-  if (newX >= 0 && newX < boardSize && newY >= 0 && newY < boardSize) {
-    agentPosition.x = newX;
-    agentPosition.y = newY;
-    updateAgentPosition();
-    visitsCount++; // Incrementa a contagem de visitas a cada movimento válido
-    checkForEvents();
-  }
-}
-
-function updateAgentPosition() {
-  document.querySelector(".agent").remove();
-  placeAgent();
-}
-
-function checkForEvents() {
-  const cellType = gameBoard[agentPosition.x][agentPosition.y];
-  if (cellType === "wumpus" || cellType === "pit") {
-    alert(`Você encontrou um ${cellType}! Jogo encerrado.`);
-    recordGameResult("Perdeu");
-  } else if (cellType === "gold") {
-    alert("Você encontrou o ouro! Parabéns!");
-    recordGameResult("Ganhou");
-  }
+function displayMessage(message) {
+  document.getElementById("messageDisplay").textContent = message;
 }
 
 function recordGameResult(result) {
@@ -140,18 +112,29 @@ function recordGameResult(result) {
     moves: visitsCount,
   });
   startGame(); // Restart the game and keep the Q-table
-  showReport();
+  updateHistoryTable();
+  displayMessage(`Você ${result.toLowerCase()}!`);
+}
+
+function updateHistoryTable() {
+  const tbody = document
+    .getElementById("historyTable")
+    .getElementsByTagName("tbody")[0];
+  tbody.innerHTML = ""; // Clear previous rows
+  gameHistory.forEach((game, index) => {
+    let row = tbody.insertRow();
+    let cell1 = row.insertCell(0);
+    let cell2 = row.insertCell(1);
+    let cell3 = row.insertCell(2);
+    cell1.innerHTML = index + 1;
+    cell2.innerHTML = game.result;
+    cell3.innerHTML = game.moves;
+  });
 }
 
 function showReport() {
-  console.log("Histórico de Partidas:");
-  gameHistory.forEach((game, index) => {
-    console.log(
-      `Partida ${index + 1}: Resultado - ${game.result}, Casas Visitadas - ${
-        game.moves
-      }`
-    );
-  });
+  const historyTable = document.getElementById("historyTable");
+  historyTable.style.display = "table"; // Show the history table
 }
 
 function makeIntelligentMove() {
@@ -187,6 +170,39 @@ function gameStep(action) {
   const newState = getGameState();
   const reward = getReward(newState);
   updateQTable(prevState, action, reward, newState);
+}
+
+function moveAgent(direction) {
+  const movements = {
+    ArrowUp: { x: -1, y: 0 },
+    ArrowDown: { x: 1, y: 0 },
+    ArrowLeft: { x: 0, y: -1 },
+    ArrowRight: { x: 0, y: 1 },
+  };
+  const move = movements[direction];
+  const newX = agentPosition.x + move.x;
+  const newY = agentPosition.y + move.y;
+  if (newX >= 0 && newX < boardSize && newY >= 0 && newY < boardSize) {
+    agentPosition.x = newX;
+    agentPosition.y = newY;
+    updateAgentPosition();
+  }
+}
+
+function updateAgentPosition() {
+  document.querySelector(".agent").remove();
+  placeAgent();
+  visitsCount++; // Increment the visit count for each valid move
+  checkForEvents();
+}
+
+function checkForEvents() {
+  const cellType = gameBoard[agentPosition.x][agentPosition.y];
+  if (cellType === "wumpus" || cellType === "pit") {
+    recordGameResult("Perdeu");
+  } else if (cellType === "gold") {
+    recordGameResult("Ganhou");
+  }
 }
 
 function getReward(newState) {

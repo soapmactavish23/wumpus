@@ -1,3 +1,23 @@
+body {
+    font-family: Arial, sans-serif;
+    background: url('./images/bg.png') no-repeat center center fixed;
+    background-size: cover;
+    text-align: center;
+    color: white;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+h1 {
+    margin: 20px 0;
+    color: #f0f0f0;
+}
+
 #gameBoard {
     width: 400px;
     height: 400px;
@@ -5,10 +25,13 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(4, 1fr);
+    gap: 5px;
+    margin: 20px auto;
 }
 
 .cell {
     border: 1px solid #555;
+    background-color: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -40,4 +63,67 @@
 
 .breeze {
     background-image: url('./images/vento.png');
+}
+
+button {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    outline: none;
+    transition: background-color 0.3s;
+}
+
+#restartGame {
+    background-color: green;
+    color: white;
+}
+
+#restartGame:hover {
+    background-color: darkgreen;
+}
+
+#showReport {
+    background-color: blue;
+    color: white;
+}
+
+#showReport:hover {
+    background-color: darkblue;
+}
+
+#messageDisplay {
+    font-size: 18px;
+    color: #FFD700; /* Cor dourada para mensagens */
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px;
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+footer {
+    margin-top: 20px;
+    color: #ddd;
+    position: absolute;
+    bottom: 10px;
+}
+
+table {
+    width: 80%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+    color: white;
+}
+
+th {
+    background-color: #666;
 }
