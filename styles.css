@@ -1,0 +1,43 @@
+#gameBoard {
+    width: 400px;
+    height: 400px;
+    border: 1px solid #000;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+}
+
+.cell {
+    border: 1px solid #555;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.agent, .gold, .wumpus, .pit, .breeze {
+    width: 100%;  /* Ajuste para cobrir toda a célula */
+    height: 100%; /* Ajuste para cobrir toda a célula */
+    position: absolute;
+    background-size: cover;  /* Adicione esta linha */
+}
+
+.agent {
+    background-image: url('./images/player.png');
+}
+
+.gold {
+    background-image: url('./images/gold.png');
+}
+
+.wumpus {
+    background-image: url('./images/wumpus.png');
+}
+
+.pit {
+    background-image: url('./images/buraco.png');
+}
+
+.breeze {
+    background-image: url('./images/vento.png');
+}
