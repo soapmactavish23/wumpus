@@ -34,5 +34,5 @@ Este projeto foi executado por:
 
 1. Clone o repositório:
    ```bash
-   git clone https://github.com/seu-usuario/mundo-de-wumpus.git
+   git clone https://github.com/soapmactavish23/wumpus.git
    ```
