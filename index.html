@@ -9,10 +9,14 @@
   <body>
     <h1>Mundo de Wumpus</h1>
     <div id="gameBoard"></div>
-    <button id="restartGame">Reiniciar Jogo</button>
-    <button id="showReport">Ver Relatório</button>
+    <span
+      ><button id="startGame">Iniciar Jogo</button>
+      <button id="stopGame">Parar Jogo</button>
+      <button id="restartGame">Reiniciar Jogo</button>
+      <button id="showReport">Ver Relatório</button></span
+    >
     <div id="messageDisplay"></div>
-    <table id="historyTable">
+    <table id="historyTable" style="display: none">
       <thead>
         <tr>
           <th>Partida</th>

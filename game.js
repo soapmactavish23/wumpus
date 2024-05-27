@@ -7,15 +7,31 @@ const discountFactor = 0.9;
 const explorationRate = 0.2;
 let QTable = {};
 let gameHistory = []; // Will store the history of each game
+let gameInterval; // To control the start and stop of the game
 
 document.addEventListener("DOMContentLoaded", () => {
-  startGame();
-  setInterval(makeIntelligentMove, 1000); // Move every 1 second
-  document.getElementById("restartGame").addEventListener("click", startGame);
-  document.getElementById("showReport").addEventListener("click", showReport);
+  document.getElementById("startGame").addEventListener("click", startGame);
+  document.getElementById("stopGame").addEventListener("click", stopGame);
+  document.getElementById("restartGame").addEventListener("click", restartGame);
+  document.getElementById("showReport").addEventListener("click", toggleReport);
 });
 
 function startGame() {
+  stopGame(); // Stop any existing game loop
+  gameInterval = setInterval(makeIntelligentMove, 1000); // Move every 1 second
+  initGame();
+}
+
+function stopGame() {
+  clearInterval(gameInterval);
+}
+
+function restartGame() {
+  stopGame();
+  initGame();
+}
+
+function initGame() {
   gameBoard = Array.from({ length: boardSize }, () =>
     new Array(boardSize).fill(null)
   );
@@ -111,7 +127,6 @@ function recordGameResult(result) {
     result: result,
     moves: visitsCount,
   });
-  startGame(); // Restart the game and keep the Q-table
   updateHistoryTable();
   displayMessage(`Você ${result.toLowerCase()}!`);
 }
@@ -132,9 +147,21 @@ function updateHistoryTable() {
   });
 }
 
-function showReport() {
+function toggleReport() {
   const historyTable = document.getElementById("historyTable");
-  historyTable.style.display = "table"; // Show the history table
+  const showReportButton = document.getElementById("showReport");
+  if (
+    historyTable.style.display === "none" ||
+    historyTable.style.display === ""
+  ) {
+    historyTable.style.display = "table";
+    showReportButton.textContent = "Fechar Relatório";
+    showReportButton.style.backgroundColor = "red";
+  } else {
+    historyTable.style.display = "none";
+    showReportButton.textContent = "Ver Relatório";
+    showReportButton.style.backgroundColor = "blue";
+  }
 }
 
 function makeIntelligentMove() {
@@ -200,8 +227,10 @@ function checkForEvents() {
   const cellType = gameBoard[agentPosition.x][agentPosition.y];
   if (cellType === "wumpus" || cellType === "pit") {
     recordGameResult("Perdeu");
+    stopGame(); // Stop the game loop if the agent loses
   } else if (cellType === "gold") {
     recordGameResult("Ganhou");
+    stopGame(); // Stop the game loop if the agent wins
   }
 }
 

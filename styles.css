@@ -76,13 +76,31 @@ button {
     transition: background-color 0.3s;
 }
 
-#restartGame {
+#startGame {
     background-color: green;
     color: white;
 }
 
-#restartGame:hover {
+#startGame:hover {
     background-color: darkgreen;
+}
+
+#stopGame {
+    background-color: red;
+    color: white;
+}
+
+#stopGame:hover {
+    background-color: darkred;
+}
+
+#restartGame {
+    background-color: yellow;
+    color: black;
+}
+
+#restartGame:hover {
+    background-color: orange;
 }
 
 #showReport {
