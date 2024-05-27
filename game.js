@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("stopGame").addEventListener("click", stopGame);
   document.getElementById("restartGame").addEventListener("click", restartGame);
   document.getElementById("showReport").addEventListener("click", toggleReport);
+  document.getElementById("closeModal").addEventListener("click", toggleReport);
 });
 
 function startGame() {
@@ -148,19 +149,11 @@ function updateHistoryTable() {
 }
 
 function toggleReport() {
-  const historyTable = document.getElementById("historyTable");
-  const showReportButton = document.getElementById("showReport");
-  if (
-    historyTable.style.display === "none" ||
-    historyTable.style.display === ""
-  ) {
-    historyTable.style.display = "table";
-    showReportButton.textContent = "Fechar Relatório";
-    showReportButton.style.backgroundColor = "red";
+  const reportModal = document.getElementById("reportModal");
+  if (reportModal.style.display === "block") {
+    reportModal.style.display = "none";
   } else {
-    historyTable.style.display = "none";
-    showReportButton.textContent = "Ver Relatório";
-    showReportButton.style.backgroundColor = "blue";
+    reportModal.style.display = "block";
   }
 }
 
