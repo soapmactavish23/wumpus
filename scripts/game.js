@@ -419,11 +419,11 @@ function updateMiniMap() {
         case "B":
           cell.style.backgroundImage = "url('./images/vento.png')";
           break;
-        case " ":
-          cell.style.backgroundImage = "none";
-          break;
         default:
           cell.style.backgroundImage = "url('./images/interrogacao.png')";
+          break;
+        case " ":
+          cell.style.backgroundImage = "none";
           break;
       }
     }
