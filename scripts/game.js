@@ -204,7 +204,18 @@ function getGameState() {
 
 function chooseAction(state) {
   const actions = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
-  if (Math.random() < explorationRate) {
+  const safeActions = actions.filter((action) => {
+    const [newX, newY] = getNewPosition(
+      agentPosition.x,
+      agentPosition.y,
+      action
+    );
+    return isValidPosition(newX, newY) && agentMap[newX][newY] !== "P";
+  });
+
+  if (safeActions.length > 0) {
+    return safeActions[Math.floor(Math.random() * safeActions.length)];
+  } else if (Math.random() < explorationRate) {
     return actions[Math.floor(Math.random() * actions.length)];
   } else {
     if (!QTable[state]) {
@@ -217,6 +228,21 @@ function chooseAction(state) {
   }
 }
 
+function getNewPosition(x, y, action) {
+  const movements = {
+    ArrowUp: { x: -1, y: 0 },
+    ArrowDown: { x: 1, y: 0 },
+    ArrowLeft: { x: 0, y: -1 },
+    ArrowRight: { x: 0, y: 1 },
+  };
+  const move = movements[action];
+  return [x + move.x, y + move.y];
+}
+
+function isValidPosition(x, y) {
+  return x >= 0 && x < boardSize && y >= 0 && y < boardSize;
+}
+
 function gameStep(action) {
   const prevState = getGameState();
   moveAgent(action);
@@ -226,16 +252,12 @@ function gameStep(action) {
 }
 
 function moveAgent(direction) {
-  const movements = {
-    ArrowUp: { x: -1, y: 0 },
-    ArrowDown: { x: 1, y: 0 },
-    ArrowLeft: { x: 0, y: -1 },
-    ArrowRight: { x: 0, y: 1 },
-  };
-  const move = movements[direction];
-  const newX = agentPosition.x + move.x;
-  const newY = agentPosition.y + move.y;
-  if (newX >= 0 && newX < boardSize && newY >= 0 && newY < boardSize) {
+  const [newX, newY] = getNewPosition(
+    agentPosition.x,
+    agentPosition.y,
+    direction
+  );
+  if (isValidPosition(newX, newY)) {
     agentPosition.x = newX;
     agentPosition.y = newY;
     updateAgentPosition();
@@ -274,13 +296,7 @@ function markPossiblePits(x, y) {
   directions.forEach((dir) => {
     const newX = x + dir.x;
     const newY = y + dir.y;
-    if (
-      newX >= 0 &&
-      newX < boardSize &&
-      newY >= 0 &&
-      newY < boardSize &&
-      agentMap[newX][newY] === "?"
-    ) {
+    if (isValidPosition(newX, newY) && agentMap[newX][newY] === "?") {
       agentMap[newX][newY] = "P"; // Possible pit
     }
   });
