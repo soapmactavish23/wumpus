@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    background: url('./images/bg.png') no-repeat center center fixed;
+    background: url('../images/bg.png') no-repeat center center fixed;
     background-size: cover;
     text-align: center;
     color: white;
@@ -46,23 +46,23 @@ h1 {
 }
 
 .agent {
-    background-image: url('./images/player.png');
+    background-image: url('../images/player.png');
 }
 
 .gold {
-    background-image: url('./images/gold.png');
+    background-image: url('../images/gold.png');
 }
 
 .wumpus {
-    background-image: url('./images/wumpus.png');
+    background-image: url('../images/wumpus.png');
 }
 
 .pit {
-    background-image: url('./images/buraco.png');
+    background-image: url('../images/buraco.png');
 }
 
 .breeze {
-    background-image: url('./images/vento.png');
+    background-image: url('../images/vento.png');
 }
 
 button {

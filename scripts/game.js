@@ -1,4 +1,4 @@
-let visitsCount = 0; // Variable to count room visits
+let visitsCount = 0;
 let gameBoard = [];
 let agentPosition = { x: 0, y: 0 };
 const boardSize = 4;
@@ -6,8 +6,8 @@ const learningRate = 0.1;
 const discountFactor = 0.9;
 const explorationRate = 0.2;
 let QTable = {};
-let gameHistory = []; // Will store the history of each game
-let gameInterval; // To control the start and stop of the game
+let gameHistory = [];
+let gameInterval;
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("startGame").addEventListener("click", startGame);
@@ -18,8 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function startGame() {
-  stopGame(); // Stop any existing game loop
-  gameInterval = setInterval(makeIntelligentMove, 1000); // Move every 1 second
+  stopGame();
+  gameInterval = setInterval(makeIntelligentMove, 1000);
   initGame();
 }
 
@@ -39,9 +39,9 @@ function initGame() {
   createBoard();
   placeItem("gold");
   placeItem("wumpus");
-  placeMultipleItems("pit", 3);
+  placeMultipleItems("pit", 1);
   placeAgent();
-  visitsCount = 0; // Reset the visit count for the new game
+  visitsCount = 0;
   displayMessage("Jogo iniciado. Boa sorte!");
 }
 
@@ -66,7 +66,7 @@ function placeAgent() {
     `[data-x='${agentPosition.x}'][data-y='${agentPosition.y}']`
   );
   initialCell.appendChild(agent);
-  visitsCount++; // Increment at initialization
+  visitsCount++;
 }
 
 function placeItem(type) {
@@ -136,7 +136,7 @@ function updateHistoryTable() {
   const tbody = document
     .getElementById("historyTable")
     .getElementsByTagName("tbody")[0];
-  tbody.innerHTML = ""; // Clear previous rows
+  tbody.innerHTML = "";
   gameHistory.forEach((game, index) => {
     let row = tbody.insertRow();
     let cell1 = row.insertCell(0);
@@ -170,10 +170,8 @@ function getGameState() {
 function chooseAction(state) {
   const actions = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
   if (Math.random() < explorationRate) {
-    // Explore
     return actions[Math.floor(Math.random() * actions.length)];
   } else {
-    // Exploit
     if (!QTable[state]) {
       QTable[state] = {};
       actions.forEach((action) => (QTable[state][action] = 0));
@@ -212,7 +210,7 @@ function moveAgent(direction) {
 function updateAgentPosition() {
   document.querySelector(".agent").remove();
   placeAgent();
-  visitsCount++; // Increment the visit count for each valid move
+  visitsCount++;
   checkForEvents();
 }
 
@@ -220,10 +218,10 @@ function checkForEvents() {
   const cellType = gameBoard[agentPosition.x][agentPosition.y];
   if (cellType === "wumpus" || cellType === "pit") {
     recordGameResult("Perdeu");
-    stopGame(); // Stop the game loop if the agent loses
+    stopGame();
   } else if (cellType === "gold") {
     recordGameResult("Ganhou");
-    stopGame(); // Stop the game loop if the agent wins
+    stopGame();
   }
 }
 
@@ -232,7 +230,7 @@ function getReward(newState) {
   const cellType = gameBoard[x][y];
   if (cellType === "gold") return 100;
   if (cellType === "wumpus" || cellType === "pit") return -100;
-  return -1; // Small penalty for each move to encourage finding the goal faster
+  return -1;
 }
 
 function updateQTable(prevState, action, reward, newState) {
