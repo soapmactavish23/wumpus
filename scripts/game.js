@@ -214,7 +214,7 @@ function chooseAction(state) {
   });
 
   if (safeActions.length > 0) {
-    return safeActions[Math.floor(Math.random() * safeActions.length)];
+    return prioritizeNewPositions(safeActions);
   } else if (Math.random() < explorationRate) {
     return actions[Math.floor(Math.random() * actions.length)];
   } else {
@@ -226,6 +226,20 @@ function chooseAction(state) {
       QTable[state][a] > QTable[state][b] ? a : b
     );
   }
+}
+
+function prioritizeNewPositions(actions) {
+  const newPositions = actions.filter((action) => {
+    const [newX, newY] = getNewPosition(
+      agentPosition.x,
+      agentPosition.y,
+      action
+    );
+    return agentMap[newX][newY] === "?";
+  });
+  return newPositions.length > 0
+    ? newPositions[Math.floor(Math.random() * newPositions.length)]
+    : actions[Math.floor(Math.random() * actions.length)];
 }
 
 function getNewPosition(x, y, action) {
