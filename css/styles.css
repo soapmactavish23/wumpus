@@ -18,6 +18,13 @@ h1 {
     color: #f0f0f0;
 }
 
+#gameContainer {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 20px;
+}
+
 #gameBoard {
     width: 400px;
     height: 400px;
@@ -29,6 +36,23 @@ h1 {
     margin: 20px auto;
 }
 
+#miniMapContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+#miniMap {
+    width: 200px;
+    height: 200px;
+    border: 1px solid #000;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 2px;
+}
+
 .cell {
     border: 1px solid #555;
     background-color: rgba(0, 0, 0, 0.5);
@@ -38,11 +62,26 @@ h1 {
     position: relative;
 }
 
-.agent, .gold, .wumpus, .pit, .breeze {
+.miniCell {
+    border: 1px solid #555;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.agent, .gold, .wumpus, .pit, .breeze, .interrogacao {
     width: 100%;  /* Ajuste para cobrir toda a célula */
     height: 100%; /* Ajuste para cobrir toda a célula */
     position: absolute;
     background-size: cover;  /* Adicione esta linha */
+}
+
+.miniCell img {
+    width: 50%;  /* Ajuste para cobrir metade da célula */
+    height: 50%; /* Ajuste para cobrir metade da célula */
 }
 
 .agent {
@@ -63,6 +102,10 @@ h1 {
 
 .breeze {
     background-image: url('../images/vento.png');
+}
+
+.interrogacao {
+    background-image: url('../images/interrogacao.png');
 }
 
 button {

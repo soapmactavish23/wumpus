@@ -43,6 +43,7 @@ function initGame() {
     new Array(boardSize).fill("?")
   );
   createBoard();
+  createMiniMap();
   const initialPositions = placeInitialItems();
   agentPosition = initialPositions.agent;
   placeAgent(agentPosition);
@@ -62,6 +63,21 @@ function createBoard() {
       boardElement.appendChild(cell);
     }
   }
+}
+
+function createMiniMap() {
+  const miniMapElement = document.getElementById("miniMap");
+  miniMapElement.innerHTML = "";
+  for (let i = 0; i < boardSize; i++) {
+    for (let j = 0; j < boardSize; j++) {
+      const cell = document.createElement("div");
+      cell.className = "miniCell";
+      cell.dataset.x = i;
+      cell.dataset.y = j;
+      miniMapElement.appendChild(cell);
+    }
+  }
+  updateMiniMap();
 }
 
 function placeInitialItems() {
@@ -297,7 +313,7 @@ function updateAgentMap(x, y) {
   if (cellType === "breeze") {
     markPossiblePits(x, y);
   }
-  printAgentMap();
+  updateMiniMap();
 }
 
 function markPossiblePits(x, y) {
@@ -316,10 +332,41 @@ function markPossiblePits(x, y) {
   });
 }
 
-function printAgentMap() {
-  console.clear();
-  console.log("Mapa na visão do agente:");
-  agentMap.forEach((row) => console.log(row.join(" ")));
+function updateMiniMap() {
+  for (let i = 0; i < boardSize; i++) {
+    for (let j = 0; j < boardSize; j++) {
+      const cell = document.querySelector(
+        `#miniMap .miniCell[data-x='${i}'][data-y='${j}']`
+      );
+      cell.innerHTML = "";
+      cell.style.backgroundSize = "contain";
+      cell.style.backgroundRepeat = "no-repeat";
+      cell.style.backgroundPosition = "center";
+      switch (agentMap[i][j]) {
+        case "A":
+          cell.style.backgroundImage = "url('./images/player.png')";
+          break;
+        case "G":
+          cell.style.backgroundImage = "url('./images/gold.png')";
+          break;
+        case "W":
+          cell.style.backgroundImage = "url('./images/wumpus.png')";
+          break;
+        case "P":
+          cell.style.backgroundImage = "url('./images/buraco.png')";
+          break;
+        case "B":
+          cell.style.backgroundImage = "url('./images/vento.png')";
+          break;
+        case " ":
+          cell.style.backgroundImage = "none";
+          break;
+        default:
+          cell.style.backgroundImage = "none";
+          break;
+      }
+    }
+  }
 }
 
 function checkForEvents() {
