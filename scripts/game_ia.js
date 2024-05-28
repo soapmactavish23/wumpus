@@ -1,4 +1,4 @@
-let visitsCount = 0; // Variável para contar as visitas às salas
+let visitsCount = 0;
 let gameBoard = [];
 let agentPosition = { x: 0, y: 0 };
 const boardSize = 4;
@@ -6,23 +6,43 @@ const learningRate = 0.1;
 const discountFactor = 0.9;
 const explorationRate = 0.2;
 let QTable = {};
-let gameHistory = []; // Armazenará o histórico de cada partida
+let gameHistory = [];
+let gameInterval;
 
 document.addEventListener("DOMContentLoaded", () => {
-  startGame();
-  setInterval(makeIntelligentMove, 1000); // Move a cada 1 segundo
+  document.getElementById("startGame").addEventListener("click", startGame);
+  document.getElementById("stopGame").addEventListener("click", stopGame);
+  document.getElementById("restartGame").addEventListener("click", restartGame);
+  document.getElementById("showReport").addEventListener("click", toggleReport);
+  document.getElementById("closeModal").addEventListener("click", toggleReport);
 });
 
 function startGame() {
+  stopGame();
+  gameInterval = setInterval(makeIntelligentMove, 1000);
+  initGame();
+}
+
+function stopGame() {
+  clearInterval(gameInterval);
+}
+
+function restartGame() {
+  stopGame();
+  initGame();
+}
+
+function initGame() {
   gameBoard = Array.from({ length: boardSize }, () =>
     new Array(boardSize).fill(null)
   );
   createBoard();
   placeItem("gold");
   placeItem("wumpus");
-  placeMultipleItems("pit", 3);
+  placeMultipleItems("pit", 1);
   placeAgent();
-  visitsCount = 0; // Reinicia a contagem ao começar um novo jogo
+  visitsCount = 0;
+  displayMessage("Jogo iniciado. Boa sorte!");
 }
 
 function createBoard() {
@@ -46,7 +66,7 @@ function placeAgent() {
     `[data-x='${agentPosition.x}'][data-y='${agentPosition.y}']`
   );
   initialCell.appendChild(agent);
-  visitsCount++; // Incrementa na inicialização
+  visitsCount++;
 }
 
 function placeItem(type) {
@@ -99,39 +119,8 @@ function placeBreezes(x, y) {
   });
 }
 
-function moveAgent(direction) {
-  const movements = {
-    ArrowUp: { x: -1, y: 0 },
-    ArrowDown: { x: 1, y: 0 },
-    ArrowLeft: { x: 0, y: -1 },
-    ArrowRight: { x: 0, y: 1 },
-  };
-  const move = movements[direction];
-  const newX = agentPosition.x + move.x;
-  const newY = agentPosition.y + move.y;
-  if (newX >= 0 && newX < boardSize && newY >= 0 && newY < boardSize) {
-    agentPosition.x = newX;
-    agentPosition.y = newY;
-    updateAgentPosition();
-    visitsCount++; // Incrementa a contagem de visitas a cada movimento válido
-    checkForEvents();
-  }
-}
-
-function updateAgentPosition() {
-  document.querySelector(".agent").remove();
-  placeAgent();
-}
-
-function checkForEvents() {
-  const cellType = gameBoard[agentPosition.x][agentPosition.y];
-  if (cellType === "wumpus" || cellType === "pit") {
-    alert(`Você encontrou um ${cellType}! Jogo encerrado.`);
-    recordGameResult("Perdeu");
-  } else if (cellType === "gold") {
-    alert("Você encontrou o ouro! Parabéns!");
-    recordGameResult("Ganhou");
-  }
+function displayMessage(message) {
+  document.getElementById("messageDisplay").textContent = message;
 }
 
 function recordGameResult(result) {
@@ -139,19 +128,33 @@ function recordGameResult(result) {
     result: result,
     moves: visitsCount,
   });
-  startGame(); // Restart the game and keep the Q-table
-  showReport();
+  updateHistoryTable();
+  displayMessage(`Você ${result.toLowerCase()}!`);
 }
 
-function showReport() {
-  console.log("Histórico de Partidas:");
+function updateHistoryTable() {
+  const tbody = document
+    .getElementById("historyTable")
+    .getElementsByTagName("tbody")[0];
+  tbody.innerHTML = "";
   gameHistory.forEach((game, index) => {
-    console.log(
-      `Partida ${index + 1}: Resultado - ${game.result}, Casas Visitadas - ${
-        game.moves
-      }`
-    );
+    let row = tbody.insertRow();
+    let cell1 = row.insertCell(0);
+    let cell2 = row.insertCell(1);
+    let cell3 = row.insertCell(2);
+    cell1.innerHTML = index + 1;
+    cell2.innerHTML = game.result;
+    cell3.innerHTML = game.moves;
   });
+}
+
+function toggleReport() {
+  const reportModal = document.getElementById("reportModal");
+  if (reportModal.style.display === "block") {
+    reportModal.style.display = "none";
+  } else {
+    reportModal.style.display = "block";
+  }
 }
 
 function makeIntelligentMove() {
@@ -167,10 +170,8 @@ function getGameState() {
 function chooseAction(state) {
   const actions = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
   if (Math.random() < explorationRate) {
-    // Explore
     return actions[Math.floor(Math.random() * actions.length)];
   } else {
-    // Exploit
     if (!QTable[state]) {
       QTable[state] = {};
       actions.forEach((action) => (QTable[state][action] = 0));
@@ -189,12 +190,47 @@ function gameStep(action) {
   updateQTable(prevState, action, reward, newState);
 }
 
+function moveAgent(direction) {
+  const movements = {
+    ArrowUp: { x: -1, y: 0 },
+    ArrowDown: { x: 1, y: 0 },
+    ArrowLeft: { x: 0, y: -1 },
+    ArrowRight: { x: 0, y: 1 },
+  };
+  const move = movements[direction];
+  const newX = agentPosition.x + move.x;
+  const newY = agentPosition.y + move.y;
+  if (newX >= 0 && newX < boardSize && newY >= 0 && newY < boardSize) {
+    agentPosition.x = newX;
+    agentPosition.y = newY;
+    updateAgentPosition();
+  }
+}
+
+function updateAgentPosition() {
+  document.querySelector(".agent").remove();
+  placeAgent();
+  visitsCount++;
+  checkForEvents();
+}
+
+function checkForEvents() {
+  const cellType = gameBoard[agentPosition.x][agentPosition.y];
+  if (cellType === "wumpus" || cellType === "pit") {
+    recordGameResult("Perdeu");
+    stopGame();
+  } else if (cellType === "gold") {
+    recordGameResult("Ganhou");
+    stopGame();
+  }
+}
+
 function getReward(newState) {
   const [x, y] = newState.substring(1).split("y").map(Number);
   const cellType = gameBoard[x][y];
   if (cellType === "gold") return 100;
   if (cellType === "wumpus" || cellType === "pit") return -100;
-  return -1; // Small penalty for each move to encourage finding the goal faster
+  return -1;
 }
 
 function updateQTable(prevState, action, reward, newState) {
