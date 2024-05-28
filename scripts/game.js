@@ -336,10 +336,10 @@ function markPossiblePits(x, y) {
       agentMap[newX][newY] = "P"; // Possible pit
     }
   });
+  deducePitPosition();
 }
 
 function deducePitPosition() {
-  const possiblePitPositions = [];
   const breezePositions = [];
 
   for (let i = 0; i < boardSize; i++) {
@@ -350,6 +350,7 @@ function deducePitPosition() {
     }
   }
 
+  const pitCandidates = {};
   breezePositions.forEach((breeze) => {
     const directions = [
       { x: -1, y: 0 },
@@ -360,42 +361,39 @@ function deducePitPosition() {
     directions.forEach((dir) => {
       const newX = breeze.x + dir.x;
       const newY = breeze.y + dir.y;
-      if (isValidPosition(newX, newY) && agentMap[newX][newY] === "P") {
-        possiblePitPositions.push({ x: newX, y: newY });
+      if (
+        isValidPosition(newX, newY) &&
+        (agentMap[newX][newY] === "P" || agentMap[newX][newY] === "?")
+      ) {
+        const key = `${newX},${newY}`;
+        if (!pitCandidates[key]) {
+          pitCandidates[key] = 0;
+        }
+        pitCandidates[key]++;
       }
     });
   });
 
-  const pitCounts = possiblePitPositions.reduce((acc, pos) => {
-    const key = `${pos.x},${pos.y}`;
-    acc[key] = (acc[key] || 0) + 1;
-    return acc;
-  }, {});
+  // Identify the most likely pit positions
+  const maxCount = Math.max(...Object.values(pitCandidates));
+  const probablePits = Object.keys(pitCandidates).filter(
+    (key) => pitCandidates[key] === maxCount
+  );
 
-  let pitPosition = null;
-  let maxCount = 0;
-
-  for (const [key, count] of Object.entries(pitCounts)) {
-    if (count > maxCount) {
-      maxCount = count;
-      const [x, y] = key.split(",").map(Number);
-      pitPosition = { x, y };
-    }
-  }
-
-  if (pitPosition) {
-    for (let i = 0; i < boardSize; i++) {
-      for (let j = 0; j < boardSize; j++) {
-        if (
-          agentMap[i][j] === "P" &&
-          (i !== pitPosition.x || j !== pitPosition.y)
-        ) {
-          agentMap[i][j] = "?";
-        }
+  // Clear all other possible pit positions
+  for (let i = 0; i < boardSize; i++) {
+    for (let j = 0; j < boardSize; j++) {
+      if (agentMap[i][j] === "P" && !probablePits.includes(`${i},${j}`)) {
+        agentMap[i][j] = "?";
       }
     }
-    agentMap[pitPosition.x][pitPosition.y] = "P";
   }
+
+  // Confirm the pit positions
+  probablePits.forEach((key) => {
+    const [x, y] = key.split(",").map(Number);
+    agentMap[x][y] = "P";
+  });
 }
 
 function updateMiniMap() {
