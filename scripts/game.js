@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function startGame() {
   stopGame();
-  gameInterval = setInterval(makeIntelligentMove, 1000);
+  gameInterval = setInterval(makeIntelligentMove, 500);
   initGame();
 }
 
@@ -314,6 +314,7 @@ function updateAgentMap(x, y) {
   if (cellType === "breeze") {
     markPossiblePits(x, y);
   }
+  deducePitPosition();
   updateMiniMap();
 }
 
@@ -325,7 +326,6 @@ function markPossiblePits(x, y) {
     { x: 0, y: 1 },
   ];
 
-  let possiblePits = [];
   directions.forEach((dir) => {
     const newX = x + dir.x;
     const newY = y + dir.y;
@@ -333,41 +333,69 @@ function markPossiblePits(x, y) {
       isValidPosition(newX, newY) &&
       (agentMap[newX][newY] === "?" || agentMap[newX][newY] === "P")
     ) {
-      possiblePits.push({ x: newX, y: newY });
-    }
-  });
-
-  possiblePits.forEach((pit) => {
-    agentMap[pit.x][pit.y] = "P"; // Possible pit
-  });
-
-  // Remover pits não existentes
-  directions.forEach((dir) => {
-    const newX = x + dir.x;
-    const newY = y + dir.y;
-    if (
-      isValidPosition(newX, newY) &&
-      agentMap[newX][newY] === "P" &&
-      !isPitPossible(newX, newY)
-    ) {
-      agentMap[newX][newY] = "?"; // Remover marcação de pit
+      agentMap[newX][newY] = "P"; // Possible pit
     }
   });
 }
 
-function isPitPossible(x, y) {
-  const directions = [
-    { x: -1, y: 0 },
-    { x: 1, y: 0 },
-    { x: 0, y: -1 },
-    { x: 0, y: 1 },
-  ];
+function deducePitPosition() {
+  const possiblePitPositions = [];
+  const breezePositions = [];
 
-  return directions.some((dir) => {
-    const newX = x + dir.x;
-    const newY = y + dir.y;
-    return isValidPosition(newX, newY) && agentMap[newX][newY] === "B";
+  for (let i = 0; i < boardSize; i++) {
+    for (let j = 0; j < boardSize; j++) {
+      if (agentMap[i][j] === "B") {
+        breezePositions.push({ x: i, y: j });
+      }
+    }
+  }
+
+  breezePositions.forEach((breeze) => {
+    const directions = [
+      { x: -1, y: 0 },
+      { x: 1, y: 0 },
+      { x: 0, y: -1 },
+      { x: 0, y: 1 },
+    ];
+    directions.forEach((dir) => {
+      const newX = breeze.x + dir.x;
+      const newY = breeze.y + dir.y;
+      if (isValidPosition(newX, newY) && agentMap[newX][newY] === "P") {
+        possiblePitPositions.push({ x: newX, y: newY });
+      }
+    });
   });
+
+  const pitCounts = possiblePitPositions.reduce((acc, pos) => {
+    const key = `${pos.x},${pos.y}`;
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+
+  let pitPosition = null;
+  let maxCount = 0;
+
+  for (const [key, count] of Object.entries(pitCounts)) {
+    if (count > maxCount) {
+      maxCount = count;
+      const [x, y] = key.split(",").map(Number);
+      pitPosition = { x, y };
+    }
+  }
+
+  if (pitPosition) {
+    for (let i = 0; i < boardSize; i++) {
+      for (let j = 0; j < boardSize; j++) {
+        if (
+          agentMap[i][j] === "P" &&
+          (i !== pitPosition.x || j !== pitPosition.y)
+        ) {
+          agentMap[i][j] = "?";
+        }
+      }
+    }
+    agentMap[pitPosition.x][pitPosition.y] = "P";
+  }
 }
 
 function updateMiniMap() {
