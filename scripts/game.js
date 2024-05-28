@@ -8,6 +8,9 @@ const explorationRate = 0.2;
 let QTable = {};
 let gameHistory = [];
 let gameInterval;
+let agentMap = Array.from({ length: boardSize }, () =>
+  new Array(boardSize).fill("?")
+);
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("startGame").addEventListener("click", startGame);
@@ -35,6 +38,9 @@ function restartGame() {
 function initGame() {
   gameBoard = Array.from({ length: boardSize }, () =>
     new Array(boardSize).fill(null)
+  );
+  agentMap = Array.from({ length: boardSize }, () =>
+    new Array(boardSize).fill("?")
   );
   createBoard();
   const initialPositions = placeInitialItems();
@@ -104,6 +110,7 @@ function placeAgent(position) {
   cell.appendChild(agent);
   gameBoard[position.x][position.y] = "agent";
   visitsCount++;
+  updateAgentMap(position.x, position.y);
 }
 
 function placeItemAtPosition(type, position) {
@@ -244,7 +251,45 @@ function updateAgentPosition() {
   );
   cell.appendChild(agent);
   visitsCount++;
+  updateAgentMap(agentPosition.x, agentPosition.y);
   checkForEvents();
+}
+
+function updateAgentMap(x, y) {
+  const cellType = gameBoard[x][y];
+  agentMap[x][y] = cellType === null ? " " : cellType.charAt(0).toUpperCase();
+  if (cellType === "breeze") {
+    markPossiblePits(x, y);
+  }
+  printAgentMap();
+}
+
+function markPossiblePits(x, y) {
+  const directions = [
+    { x: -1, y: 0 },
+    { x: 1, y: 0 },
+    { x: 0, y: -1 },
+    { x: 0, y: 1 },
+  ];
+  directions.forEach((dir) => {
+    const newX = x + dir.x;
+    const newY = y + dir.y;
+    if (
+      newX >= 0 &&
+      newX < boardSize &&
+      newY >= 0 &&
+      newY < boardSize &&
+      agentMap[newX][newY] === "?"
+    ) {
+      agentMap[newX][newY] = "P"; // Possible pit
+    }
+  });
+}
+
+function printAgentMap() {
+  console.clear();
+  console.log("Mapa na visão do agente:");
+  agentMap.forEach((row) => console.log(row.join(" ")));
 }
 
 function checkForEvents() {

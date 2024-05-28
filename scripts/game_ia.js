@@ -37,10 +37,9 @@ function initGame() {
     new Array(boardSize).fill(null)
   );
   createBoard();
-  placeItem("gold");
-  placeItem("wumpus");
-  placeMultipleItems("pit", 1);
-  placeAgent();
+  const initialPositions = placeInitialItems();
+  agentPosition = initialPositions.agent;
+  placeAgent(agentPosition);
   visitsCount = 0;
   displayMessage("Jogo iniciado. Boa sorte!");
 }
@@ -59,35 +58,64 @@ function createBoard() {
   }
 }
 
-function placeAgent() {
-  const agent = document.createElement("div");
-  agent.className = "agent";
-  const initialCell = document.querySelector(
-    `[data-x='${agentPosition.x}'][data-y='${agentPosition.y}']`
+function placeInitialItems() {
+  const positions = {
+    agent: { x: 0, y: 0 },
+    gold: generateUniquePosition([]),
+    wumpus: generateUniquePosition([]),
+    pits: [],
+  };
+
+  positions.pits.push(
+    generateUniquePosition([positions.gold, positions.wumpus])
   );
-  initialCell.appendChild(agent);
-  visitsCount++;
+
+  placeItemAtPosition("gold", positions.gold);
+  placeItemAtPosition("wumpus", positions.wumpus);
+  positions.pits.forEach((pitPosition) => {
+    placeItemAtPosition("pit", pitPosition);
+  });
+
+  return positions;
 }
 
-function placeItem(type) {
+function generateUniquePosition(existingPositions) {
   let x, y;
   do {
     x = Math.floor(Math.random() * boardSize);
     y = Math.floor(Math.random() * boardSize);
-  } while (gameBoard[x][y] || (x === 0 && y === 0));
-  gameBoard[x][y] = type;
-  const cell = document.querySelector(`[data-x='${x}'][data-y='${y}']`);
+  } while (isPositionOccupied(x, y, existingPositions));
+  return { x, y };
+}
+
+function isPositionOccupied(x, y, existingPositions) {
+  return (
+    existingPositions.some((pos) => pos.x === x && pos.y === y) ||
+    (x === 0 && y === 0)
+  );
+}
+
+function placeAgent(position) {
+  const agent = document.createElement("div");
+  agent.className = "agent";
+  const cell = document.querySelector(
+    `[data-x='${position.x}'][data-y='${position.y}']`
+  );
+  cell.appendChild(agent);
+  gameBoard[position.x][position.y] = "agent";
+  visitsCount++;
+}
+
+function placeItemAtPosition(type, position) {
+  gameBoard[position.x][position.y] = type;
+  const cell = document.querySelector(
+    `[data-x='${position.x}'][data-y='${position.y}']`
+  );
   const item = document.createElement("div");
   item.className = type;
   cell.appendChild(item);
   if (type === "pit") {
-    placeBreezes(x, y);
-  }
-}
-
-function placeMultipleItems(type, count) {
-  for (let i = 0; i < count; i++) {
-    placeItem(type);
+    placeBreezes(position.x, position.y);
   }
 }
 
@@ -209,7 +237,12 @@ function moveAgent(direction) {
 
 function updateAgentPosition() {
   document.querySelector(".agent").remove();
-  placeAgent();
+  const agent = document.createElement("div");
+  agent.className = "agent";
+  const cell = document.querySelector(
+    `[data-x='${agentPosition.x}'][data-y='${agentPosition.y}']`
+  );
+  cell.appendChild(agent);
   visitsCount++;
   checkForEvents();
 }
