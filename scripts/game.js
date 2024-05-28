@@ -1,7 +1,7 @@
 let visitsCount = 0;
 let gameBoard = [];
 let agentPosition = { x: 0, y: 0 };
-const boardSize = 4;
+let boardSize = 4;
 const learningRate = 0.1;
 const discountFactor = 0.9;
 const explorationRate = 0.2;
@@ -18,11 +18,17 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("restartGame").addEventListener("click", restartGame);
   document.getElementById("showReport").addEventListener("click", toggleReport);
   document.getElementById("closeModal").addEventListener("click", toggleReport);
+  document.getElementById("boardSizeSelect").addEventListener("change", changeBoardSize);
 });
+
+function changeBoardSize(event) {
+  boardSize = parseInt(event.target.value);
+  initGame();
+}
 
 function startGame() {
   stopGame();
-  gameInterval = setInterval(makeIntelligentMove, 500);
+  gameInterval = setInterval(makeIntelligentMove, 1000);
   initGame();
 }
 
@@ -53,6 +59,8 @@ function initGame() {
 
 function createBoard() {
   const boardElement = document.getElementById("gameBoard");
+  boardElement.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
+  boardElement.style.gridTemplateRows = `repeat(${boardSize}, 1fr)`;
   boardElement.innerHTML = "";
   for (let i = 0; i < boardSize; i++) {
     for (let j = 0; j < boardSize; j++) {
@@ -67,6 +75,8 @@ function createBoard() {
 
 function createMiniMap() {
   const miniMapElement = document.getElementById("miniMap");
+  miniMapElement.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
+  miniMapElement.style.gridTemplateRows = `repeat(${boardSize}, 1fr)`;
   miniMapElement.innerHTML = "";
   for (let i = 0; i < boardSize; i++) {
     for (let j = 0; j < boardSize; j++) {
@@ -85,17 +95,15 @@ function placeInitialItems() {
     agent: { x: 0, y: 0 },
     gold: generateUniquePosition([]),
     wumpus: null,
-    pits: [],
+    pits: []
   };
 
   positions.wumpus = generateUniquePosition([positions.gold]);
-  positions.pits.push(
-    generateUniquePosition([positions.gold, positions.wumpus])
-  );
+  positions.pits.push(generateUniquePosition([positions.gold, positions.wumpus]));
 
   placeItemAtPosition("gold", positions.gold);
   placeItemAtPosition("wumpus", positions.wumpus);
-  positions.pits.forEach((pitPosition) => {
+  positions.pits.forEach(pitPosition => {
     placeItemAtPosition("pit", pitPosition);
   });
 
@@ -112,18 +120,13 @@ function generateUniquePosition(existingPositions) {
 }
 
 function isPositionOccupied(x, y, existingPositions) {
-  return (
-    existingPositions.some((pos) => pos.x === x && pos.y === y) ||
-    (x === 0 && y === 0)
-  );
+  return existingPositions.some(pos => pos.x === x && pos.y === y) || (x === 0 && y === 0);
 }
 
 function placeAgent(position) {
   const agent = document.createElement("div");
   agent.className = "agent";
-  const cell = document.querySelector(
-    `[data-x='${position.x}'][data-y='${position.y}']`
-  );
+  const cell = document.querySelector(`[data-x='${position.x}'][data-y='${position.y}']`);
   cell.appendChild(agent);
   gameBoard[position.x][position.y] = "agent";
   visitsCount++;
@@ -132,9 +135,7 @@ function placeAgent(position) {
 
 function placeItemAtPosition(type, position) {
   gameBoard[position.x][position.y] = type;
-  const cell = document.querySelector(
-    `[data-x='${position.x}'][data-y='${position.y}']`
-  );
+  const cell = document.querySelector(`[data-x='${position.x}'][data-y='${position.y}']`);
   const item = document.createElement("div");
   item.className = type;
   cell.appendChild(item);
@@ -161,9 +162,7 @@ function placeBreezes(x, y) {
       !gameBoard[newX][newY]
     ) {
       gameBoard[newX][newY] = "breeze";
-      const cell = document.querySelector(
-        `[data-x='${newX}'][data-y='${newY}']`
-      );
+      const cell = document.querySelector(`[data-x='${newX}'][data-y='${newY}']`);
       const breeze = document.createElement("div");
       breeze.className = "breeze";
       cell.appendChild(breeze);
@@ -185,9 +184,7 @@ function recordGameResult(result) {
 }
 
 function updateHistoryTable() {
-  const tbody = document
-    .getElementById("historyTable")
-    .getElementsByTagName("tbody")[0];
+  const tbody = document.getElementById("historyTable").getElementsByTagName("tbody")[0];
   tbody.innerHTML = "";
   gameHistory.forEach((game, index) => {
     let row = tbody.insertRow();
@@ -221,13 +218,9 @@ function getGameState() {
 
 function chooseAction(state) {
   const actions = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
-  const safeActions = actions.filter((action) => {
-    const [newX, newY] = getNewPosition(
-      agentPosition.x,
-      agentPosition.y,
-      action
-    );
-    return isValidPosition(newX, newY) && agentMap[newX][newY] !== "P";
+  const safeActions = actions.filter(action => {
+    const [newX, newY] = getNewPosition(agentPosition.x, agentPosition.y, action);
+    return isValidPosition(newX, newY) && agentMap[newX][newY] !== 'P';
   });
 
   if (safeActions.length > 0) {
@@ -246,17 +239,11 @@ function chooseAction(state) {
 }
 
 function prioritizeNewPositions(actions) {
-  const newPositions = actions.filter((action) => {
-    const [newX, newY] = getNewPosition(
-      agentPosition.x,
-      agentPosition.y,
-      action
-    );
-    return agentMap[newX][newY] === "?";
+  const newPositions = actions.filter(action => {
+    const [newX, newY] = getNewPosition(agentPosition.x, agentPosition.y, action);
+    return agentMap[newX][newY] === '?';
   });
-  return newPositions.length > 0
-    ? newPositions[Math.floor(Math.random() * newPositions.length)]
-    : actions[Math.floor(Math.random() * actions.length)];
+  return newPositions.length > 0 ? newPositions[Math.floor(Math.random() * newPositions.length)] : actions[Math.floor(Math.random() * actions.length)];
 }
 
 function getNewPosition(x, y, action) {
@@ -283,11 +270,7 @@ function gameStep(action) {
 }
 
 function moveAgent(direction) {
-  const [newX, newY] = getNewPosition(
-    agentPosition.x,
-    agentPosition.y,
-    direction
-  );
+  const [newX, newY] = getNewPosition(agentPosition.x, agentPosition.y, direction);
   if (isValidPosition(newX, newY)) {
     agentPosition.x = newX;
     agentPosition.y = newY;
@@ -299,9 +282,7 @@ function updateAgentPosition() {
   document.querySelector(".agent").remove();
   const agent = document.createElement("div");
   agent.className = "agent";
-  const cell = document.querySelector(
-    `[data-x='${agentPosition.x}'][data-y='${agentPosition.y}']`
-  );
+  const cell = document.querySelector(`[data-x='${agentPosition.x}'][data-y='${agentPosition.y}']`);
   cell.appendChild(agent);
   visitsCount++;
   updateAgentMap(agentPosition.x, agentPosition.y);
@@ -329,11 +310,8 @@ function markPossiblePits(x, y) {
   directions.forEach((dir) => {
     const newX = x + dir.x;
     const newY = y + dir.y;
-    if (
-      isValidPosition(newX, newY) &&
-      (agentMap[newX][newY] === "?" || agentMap[newX][newY] === "P")
-    ) {
-      agentMap[newX][newY] = "P";
+    if (isValidPosition(newX, newY) && (agentMap[newX][newY] === "?" || agentMap[newX][newY] === "P")) {
+      agentMap[newX][newY] = "P"; // Possible pit
     }
   });
   deducePitPosition();
@@ -361,10 +339,7 @@ function deducePitPosition() {
     directions.forEach((dir) => {
       const newX = breeze.x + dir.x;
       const newY = breeze.y + dir.y;
-      if (
-        isValidPosition(newX, newY) &&
-        (agentMap[newX][newY] === "P" || agentMap[newX][newY] === "?")
-      ) {
+      if (isValidPosition(newX, newY) && (agentMap[newX][newY] === "P" || agentMap[newX][newY] === "?")) {
         const key = `${newX},${newY}`;
         if (!pitCandidates[key]) {
           pitCandidates[key] = 0;
@@ -374,11 +349,11 @@ function deducePitPosition() {
     });
   });
 
+  // Identify the most likely pit positions
   const maxCount = Math.max(...Object.values(pitCandidates));
-  const probablePits = Object.keys(pitCandidates).filter(
-    (key) => pitCandidates[key] === maxCount
-  );
+  const probablePits = Object.keys(pitCandidates).filter(key => pitCandidates[key] === maxCount);
 
+  // Clear all other possible pit positions
   for (let i = 0; i < boardSize; i++) {
     for (let j = 0; j < boardSize; j++) {
       if (agentMap[i][j] === "P" && !probablePits.includes(`${i},${j}`)) {
@@ -387,7 +362,8 @@ function deducePitPosition() {
     }
   }
 
-  probablePits.forEach((key) => {
+  // Confirm the pit positions
+  probablePits.forEach(key => {
     const [x, y] = key.split(",").map(Number);
     agentMap[x][y] = "P";
   });
@@ -396,9 +372,7 @@ function deducePitPosition() {
 function updateMiniMap() {
   for (let i = 0; i < boardSize; i++) {
     for (let j = 0; j < boardSize; j++) {
-      const cell = document.querySelector(
-        `#miniMap .miniCell[data-x='${i}'][data-y='${j}']`
-      );
+      const cell = document.querySelector(`#miniMap .miniCell[data-x='${i}'][data-y='${j}']`);
       cell.innerHTML = "";
       cell.style.backgroundSize = "contain";
       cell.style.backgroundRepeat = "no-repeat";
@@ -419,11 +393,11 @@ function updateMiniMap() {
         case "B":
           cell.style.backgroundImage = "url('./images/vento.png')";
           break;
-        default:
-          cell.style.backgroundImage = "url('./images/interrogacao.png')";
-          break;
         case " ":
           cell.style.backgroundImage = "none";
+          break;
+        default:
+          cell.style.backgroundImage = "url('./images/interrogacao.png')";
           break;
       }
     }

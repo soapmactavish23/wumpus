@@ -72,16 +72,26 @@ h1 {
     height: 100%;
 }
 
-.agent, .gold, .wumpus, .pit, .breeze, .interrogacao {
-    width: 100%;  /* Ajuste para cobrir toda a célula */
-    height: 100%; /* Ajuste para cobrir toda a célula */
+.agent,
+.gold,
+.wumpus,
+.pit,
+.breeze,
+.interrogacao {
+    width: 100%;
+    /* Ajuste para cobrir toda a célula */
+    height: 100%;
+    /* Ajuste para cobrir toda a célula */
     position: absolute;
-    background-size: cover;  /* Adicione esta linha */
+    background-size: cover;
+    /* Adicione esta linha */
 }
 
 .miniCell img {
-    width: 50%;  /* Ajuste para cobrir metade da célula */
-    height: 50%; /* Ajuste para cobrir metade da célula */
+    width: 50%;
+    /* Ajuste para cobrir metade da célula */
+    height: 50%;
+    /* Ajuste para cobrir metade da célula */
 }
 
 .agent {
@@ -157,7 +167,8 @@ button {
 
 #messageDisplay {
     font-size: 18px;
-    color: #FFD700; /* Cor dourada para mensagens */
+    color: #FFD700;
+    /* Cor dourada para mensagens */
     padding: 10px;
     border-radius: 5px;
     margin-top: 10px;
@@ -166,13 +177,15 @@ button {
 
 footer {
     margin-top: 20px;
-    color: #ddd;
+    background-color: #fff;
+    color: black;
+    padding: 10px;
     position: absolute;
     bottom: 10px;
 }
 
 .modal {
-    display: none; 
+    display: none;
     position: fixed;
     z-index: 1;
     left: 0;
@@ -180,8 +193,8 @@ footer {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgb(0,0,0);
-    background-color: rgba(0,0,0,0.4);
+    background-color: rgb(0, 0, 0);
+    background-color: rgba(0, 0, 0, 0.4);
     justify-content: center;
     align-items: center;
 }
@@ -219,7 +232,8 @@ table {
     background-color: rgba(0, 0, 0, 0.8);
 }
 
-th, td {
+th,
+td {
     border: 1px solid #ccc;
     padding: 8px;
     text-align: left;
@@ -228,4 +242,32 @@ th, td {
 
 th {
     background-color: #666;
+}
+
+#boardSizeSelect {
+    display: inline-block;
+    width: auto;
+    padding: 0.375rem 1.75rem 0.375rem 0.75rem;
+    line-height: 1.5;
+    color: #495057;
+    vertical-align: middle;
+    background: #fff url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 4 5%27%3E%3Cpath fill=%27%23343a40%27 d=%27M2 0L0 2h4L2 0zm0 5L0 3h4l-2 2z%27/%3E%3C/svg%3E') no-repeat right 0.75rem center/8px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    appearance: none;
+    font-size: 1rem;
+    font-weight: 400;
+    background-color: #fff;
+    background-clip: padding-box;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+#boardSizeSelect:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+#boardSizeSelect:hover {
+    border-color: #1e7e34;
 }
