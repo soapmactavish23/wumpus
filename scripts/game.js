@@ -333,7 +333,7 @@ function markPossiblePits(x, y) {
       isValidPosition(newX, newY) &&
       (agentMap[newX][newY] === "?" || agentMap[newX][newY] === "P")
     ) {
-      agentMap[newX][newY] = "P"; // Possible pit
+      agentMap[newX][newY] = "P";
     }
   });
   deducePitPosition();
@@ -374,13 +374,11 @@ function deducePitPosition() {
     });
   });
 
-  // Identify the most likely pit positions
   const maxCount = Math.max(...Object.values(pitCandidates));
   const probablePits = Object.keys(pitCandidates).filter(
     (key) => pitCandidates[key] === maxCount
   );
 
-  // Clear all other possible pit positions
   for (let i = 0; i < boardSize; i++) {
     for (let j = 0; j < boardSize; j++) {
       if (agentMap[i][j] === "P" && !probablePits.includes(`${i},${j}`)) {
@@ -389,7 +387,6 @@ function deducePitPosition() {
     }
   }
 
-  // Confirm the pit positions
   probablePits.forEach((key) => {
     const [x, y] = key.split(",").map(Number);
     agentMap[x][y] = "P";
