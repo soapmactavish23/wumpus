@@ -28,7 +28,7 @@
 Este projeto foi executado por:
 
 - **Henrick de Sousa Nogueira**
-- **Whebert Silva**
+- **Wherbert Gonçalves da Silva**
 
 ## Como Executar o Projeto
 
