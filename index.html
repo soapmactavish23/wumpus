@@ -10,11 +10,16 @@
     <h1>Mundo de Wumpus</h1>
     <select id="boardSizeSelect">
       <option value="4">4x4</option>
-      <option value="6">6x6</option>
       <option value="8">8x8</option>
+      <option value="16">16x16</option>
     </select>
-    <div id="gameBoard"></div>
-    <div id="miniMap"></div>
+    <div id="gameContainer">
+      <div id="gameBoard"></div>
+      <div id="miniMapContainer">
+        <h2>Visão do Wumpus</h2>
+        <div id="miniMap"></div>
+      </div>
+    </div>
     <span>
       <button id="startGame">Iniciar Jogo</button>
       <button id="stopGame">Parar Jogo</button>
@@ -41,7 +46,9 @@
       </div>
     </div>
 
-    <footer>Alunos: Henrick de Sousa Nogueira e Whebert</footer>
+    <footer style="background-color: #fff; color: black; padding: 10px">
+      Alunos: Henrick de Sousa Nogueira e Whebert
+    </footer>
     <script src="./scripts/game.js"></script>
   </body>
 </html>
