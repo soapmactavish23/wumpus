@@ -84,10 +84,11 @@ function placeInitialItems() {
   const positions = {
     agent: { x: 0, y: 0 },
     gold: generateUniquePosition([]),
-    wumpus: generateUniquePosition([]),
+    wumpus: null,
     pits: [],
   };
 
+  positions.wumpus = generateUniquePosition([positions.gold]);
   positions.pits.push(
     generateUniquePosition([positions.gold, positions.wumpus])
   );
@@ -323,12 +324,49 @@ function markPossiblePits(x, y) {
     { x: 0, y: -1 },
     { x: 0, y: 1 },
   ];
+
+  let possiblePits = [];
   directions.forEach((dir) => {
     const newX = x + dir.x;
     const newY = y + dir.y;
-    if (isValidPosition(newX, newY) && agentMap[newX][newY] === "?") {
-      agentMap[newX][newY] = "P"; // Possible pit
+    if (
+      isValidPosition(newX, newY) &&
+      (agentMap[newX][newY] === "?" || agentMap[newX][newY] === "P")
+    ) {
+      possiblePits.push({ x: newX, y: newY });
     }
+  });
+
+  possiblePits.forEach((pit) => {
+    agentMap[pit.x][pit.y] = "P"; // Possible pit
+  });
+
+  // Remover pits não existentes
+  directions.forEach((dir) => {
+    const newX = x + dir.x;
+    const newY = y + dir.y;
+    if (
+      isValidPosition(newX, newY) &&
+      agentMap[newX][newY] === "P" &&
+      !isPitPossible(newX, newY)
+    ) {
+      agentMap[newX][newY] = "?"; // Remover marcação de pit
+    }
+  });
+}
+
+function isPitPossible(x, y) {
+  const directions = [
+    { x: -1, y: 0 },
+    { x: 1, y: 0 },
+    { x: 0, y: -1 },
+    { x: 0, y: 1 },
+  ];
+
+  return directions.some((dir) => {
+    const newX = x + dir.x;
+    const newY = y + dir.y;
+    return isValidPosition(newX, newY) && agentMap[newX][newY] === "B";
   });
 }
 
@@ -362,7 +400,7 @@ function updateMiniMap() {
           cell.style.backgroundImage = "none";
           break;
         default:
-          cell.style.backgroundImage = "none";
+          cell.style.backgroundImage = "url('./images/interrogacao.png')";
           break;
       }
     }
