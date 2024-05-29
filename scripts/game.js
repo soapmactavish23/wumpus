@@ -1,6 +1,3 @@
-// TODO: Adicionar a função de voltar para casa após pegar o tesouro
-// TODO: Adicionar o cheiro ao redor do wumpus
-
 let visitsCount = 0;
 let gameBoard = [];
 let agentPosition = { x: 0, y: 0 };
@@ -155,6 +152,8 @@ function placeItemAtPosition(type, position) {
   cell.appendChild(item);
   if (type === "pit") {
     placeBreezes(position.x, position.y);
+  } else if (type === "wumpus") {
+    placeSmells(position.x, position.y);
   }
 }
 
@@ -182,6 +181,34 @@ function placeBreezes(x, y) {
       const breeze = document.createElement("div");
       breeze.className = "breeze";
       cell.appendChild(breeze);
+    }
+  });
+}
+
+function placeSmells(x, y) {
+  const directions = [
+    { x: -1, y: 0 },
+    { x: 1, y: 0 },
+    { x: 0, y: -1 },
+    { x: 0, y: 1 },
+  ];
+  directions.forEach((dir) => {
+    const newX = x + dir.x;
+    const newY = y + dir.y;
+    if (
+      newX >= 0 &&
+      newX < boardSize &&
+      newY >= 0 &&
+      newY < boardSize &&
+      !gameBoard[newX][newY]
+    ) {
+      gameBoard[newX][newY] = "smell";
+      const cell = document.querySelector(
+        `[data-x='${newX}'][data-y='${newY}']`
+      );
+      const smell = document.createElement("div");
+      smell.className = "smell";
+      cell.appendChild(smell);
     }
   });
 }
@@ -242,7 +269,11 @@ function chooseAction(state) {
       agentPosition.y,
       action
     );
-    return isValidPosition(newX, newY) && agentMap[newX][newY] !== "P";
+    return (
+      isValidPosition(newX, newY) &&
+      agentMap[newX][newY] !== "P" &&
+      agentMap[newX][newY] !== "W"
+    );
   });
 
   if (safeActions.length > 0) {
@@ -328,8 +359,11 @@ function updateAgentMap(x, y) {
   agentMap[x][y] = cellType === null ? " " : cellType.charAt(0).toUpperCase();
   if (cellType === "breeze") {
     markPossiblePits(x, y);
+  } else if (cellType === "smell") {
+    markPossibleWumpus(x, y);
   }
   deducePitPosition();
+  deduceWumpusPosition();
   updateMiniMap();
 }
 
@@ -352,6 +386,27 @@ function markPossiblePits(x, y) {
     }
   });
   deducePitPosition();
+}
+
+function markPossibleWumpus(x, y) {
+  const directions = [
+    { x: -1, y: 0 },
+    { x: 1, y: 0 },
+    { x: 0, y: -1 },
+    { x: 0, y: 1 },
+  ];
+
+  directions.forEach((dir) => {
+    const newX = x + dir.x;
+    const newY = y + dir.y;
+    if (
+      isValidPosition(newX, newY) &&
+      (agentMap[newX][newY] === "?" || agentMap[newX][newY] === "W")
+    ) {
+      agentMap[newX][newY] = "W"; // Possible Wumpus
+    }
+  });
+  deduceWumpusPosition();
 }
 
 function deducePitPosition() {
@@ -411,6 +466,63 @@ function deducePitPosition() {
   });
 }
 
+function deduceWumpusPosition() {
+  const smellPositions = [];
+
+  for (let i = 0; i < boardSize; i++) {
+    for (let j = 0; j < boardSize; j++) {
+      if (agentMap[i][j] === "S") {
+        smellPositions.push({ x: i, y: j });
+      }
+    }
+  }
+
+  const wumpusCandidates = {};
+  smellPositions.forEach((smell) => {
+    const directions = [
+      { x: -1, y: 0 },
+      { x: 1, y: 0 },
+      { x: 0, y: -1 },
+      { x: 0, y: 1 },
+    ];
+    directions.forEach((dir) => {
+      const newX = smell.x + dir.x;
+      const newY = smell.y + dir.y;
+      if (
+        isValidPosition(newX, newY) &&
+        (agentMap[newX][newY] === "W" || agentMap[newX][newY] === "?")
+      ) {
+        const key = `${newX},${newY}`;
+        if (!wumpusCandidates[key]) {
+          wumpusCandidates[key] = 0;
+        }
+        wumpusCandidates[key]++;
+      }
+    });
+  });
+
+  // Identify the most likely Wumpus positions
+  const maxCount = Math.max(...Object.values(wumpusCandidates));
+  const probableWumpus = Object.keys(wumpusCandidates).filter(
+    (key) => wumpusCandidates[key] === maxCount
+  );
+
+  // Clear all other possible Wumpus positions
+  for (let i = 0; i < boardSize; i++) {
+    for (let j = 0; j < boardSize; j++) {
+      if (agentMap[i][j] === "W" && !probableWumpus.includes(`${i},${j}`)) {
+        agentMap[i][j] = "?";
+      }
+    }
+  }
+
+  // Confirm the Wumpus positions
+  probableWumpus.forEach((key) => {
+    const [x, y] = key.split(",").map(Number);
+    agentMap[x][y] = "W";
+  });
+}
+
 function updateMiniMap() {
   for (let i = 0; i < boardSize; i++) {
     for (let j = 0; j < boardSize; j++) {
@@ -437,6 +549,9 @@ function updateMiniMap() {
         case "B":
           cell.style.backgroundImage = "url('./images/vento.png')";
           break;
+        case "S":
+          cell.style.backgroundImage = "url('./images/smell.png')";
+          break;
         case " ":
           cell.style.backgroundImage = "none";
           break;
@@ -454,7 +569,16 @@ function checkForEvents() {
     recordGameResult("Perdeu");
     stopGame();
   } else if (cellType === "gold") {
-    recordGameResult("Ganhou");
+    displayMessage("Tesouro encontrado! Voltando para casa...");
+    // startReturnJourney();
+  } else if (
+    agentPosition.x === 0 &&
+    agentPosition.y === 0 &&
+    agentMap[0][0] === "A" &&
+    gameHistory.length > 0 &&
+    gameHistory[gameHistory.length - 1].result === "Ganhou"
+  ) {
+    recordGameResult("Venceu");
     stopGame();
   }
 }
@@ -486,4 +610,27 @@ function updateQTable(prevState, action, reward, newState) {
     oldQValue +
     learningRate * (reward + discountFactor * maxFutureQ - oldQValue);
   QTable[prevState][action] = newQValue;
+}
+
+function startReturnJourney() {
+  gameInterval = setInterval(makeMoveTowardsHome, 1000);
+}
+
+function makeMoveTowardsHome() {
+  const action = chooseActionForReturn();
+  gameStep(action);
+}
+
+function chooseActionForReturn() {
+  const actions = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
+  const distances = actions.map((action) => {
+    const [newX, newY] = getNewPosition(
+      agentPosition.x,
+      agentPosition.y,
+      action
+    );
+    return { action, distance: Math.abs(newX) + Math.abs(newY) };
+  });
+  distances.sort((a, b) => a.distance - b.distance);
+  return distances[0].action;
 }
