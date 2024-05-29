@@ -256,7 +256,12 @@ function toggleReport() {
 
 function makeIntelligentMove() {
   const state = getGameState();
-  const action = chooseAction(state);
+  let action;
+  if (hasGold) {
+    action = chooseActionForReturn();
+  } else {
+    action = chooseAction(state);
+  }
   gameStep(action);
 }
 
@@ -345,7 +350,10 @@ function moveAgent(direction) {
 }
 
 function updateAgentPosition() {
-  document.querySelector(".agent").remove();
+  const agentElement = document.querySelector(".agent");
+  if (agentElement) {
+    agentElement.remove();
+  }
   const agent = document.createElement("div");
   agent.className = "agent";
   const cell = document.querySelector(
@@ -610,4 +618,34 @@ function updateQTable(prevState, action, reward, newState) {
     oldQValue +
     learningRate * (reward + discountFactor * maxFutureQ - oldQValue);
   QTable[prevState][action] = newQValue;
+}
+
+function manhattanDistance(x1, y1, x2, y2) {
+  return Math.abs(x1 - x2) + Math.abs(y1 - y2);
+}
+
+function chooseActionForReturn() {
+  const actions = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
+  const distances = actions
+    .map((action) => {
+      const [newX, newY] = getNewPosition(
+        agentPosition.x,
+        agentPosition.y,
+        action
+      );
+      return {
+        action,
+        distance: manhattanDistance(newX, newY, 0, 0),
+        isValid:
+          isValidPosition(newX, newY) &&
+          agentMap[newX][newY] !== "P" &&
+          agentMap[newX][newY] !== "W",
+      };
+    })
+    .filter((item) => item.isValid);
+
+  distances.sort((a, b) => a.distance - b.distance);
+  return distances.length > 0
+    ? distances[0].action
+    : actions[Math.floor(Math.random() * actions.length)];
 }
