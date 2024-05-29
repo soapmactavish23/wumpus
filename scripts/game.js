@@ -11,6 +11,7 @@ let gameInterval;
 let agentMap = Array.from({ length: boardSize }, () =>
   new Array(boardSize).fill("?")
 );
+let hasGold = false;
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("startGame").addEventListener("click", startGame);
@@ -55,7 +56,9 @@ function initGame() {
   const initialPositions = placeInitialItems();
   agentPosition = initialPositions.agent;
   placeAgent(agentPosition);
+  placeItemAtPosition("home", { x: 0, y: 0, z: -1 });
   visitsCount = 0;
+  hasGold = false;
   displayMessage("Jogo iniciado. Boa sorte!");
 }
 
@@ -552,6 +555,9 @@ function updateMiniMap() {
         case "S":
           cell.style.backgroundImage = "url('./images/smell.png')";
           break;
+        case "H":
+          cell.style.backgroundImage = "url('./images/home.png')";
+          break;
         case " ":
           cell.style.backgroundImage = "none";
           break;
@@ -570,14 +576,8 @@ function checkForEvents() {
     stopGame();
   } else if (cellType === "gold") {
     displayMessage("Tesouro encontrado! Voltando para casa...");
-    // startReturnJourney();
-  } else if (
-    agentPosition.x === 0 &&
-    agentPosition.y === 0 &&
-    agentMap[0][0] === "A" &&
-    gameHistory.length > 0 &&
-    gameHistory[gameHistory.length - 1].result === "Ganhou"
-  ) {
+    hasGold = true;
+  } else if (hasGold && agentPosition.x === 0 && agentPosition.y === 0) {
     recordGameResult("Venceu");
     stopGame();
   }
@@ -610,27 +610,4 @@ function updateQTable(prevState, action, reward, newState) {
     oldQValue +
     learningRate * (reward + discountFactor * maxFutureQ - oldQValue);
   QTable[prevState][action] = newQValue;
-}
-
-function startReturnJourney() {
-  gameInterval = setInterval(makeMoveTowardsHome, 1000);
-}
-
-function makeMoveTowardsHome() {
-  const action = chooseActionForReturn();
-  gameStep(action);
-}
-
-function chooseActionForReturn() {
-  const actions = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
-  const distances = actions.map((action) => {
-    const [newX, newY] = getNewPosition(
-      agentPosition.x,
-      agentPosition.y,
-      action
-    );
-    return { action, distance: Math.abs(newX) + Math.abs(newY) };
-  });
-  distances.sort((a, b) => a.distance - b.distance);
-  return distances[0].action;
 }
