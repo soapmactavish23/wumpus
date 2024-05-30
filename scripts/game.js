@@ -104,9 +104,27 @@ function placeInitialItems() {
   };
 
   positions.wumpus = generateUniquePosition([positions.gold]);
-  positions.pits.push(
-    generateUniquePosition([positions.gold, positions.wumpus])
-  );
+
+  let numberOfPits = 1;
+
+  if (boardSize == 4) {
+    numberOfPits = 1;
+  } else if (boardSize == 8) {
+    numberOfPits = 4;
+  } else if (boardSize == 16) {
+    numberOfPits = 8;
+  }
+
+  for (let i = 0; i < numberOfPits; i++) {
+    positions.pits.push(
+      generateUniquePosition([
+        positions.gold,
+        positions.wumpus,
+        positions.agent,
+        ...positions.pits,
+      ])
+    );
+  }
 
   placeItemAtPosition("gold", positions.gold);
   placeItemAtPosition("wumpus", positions.wumpus);
