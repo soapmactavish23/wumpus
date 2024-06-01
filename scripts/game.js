@@ -1,3 +1,4 @@
+// Inicialização das Variáveis
 let visitsCount = 0;
 let gameBoard = [];
 let agentPosition = { x: 0, y: 0 };
@@ -13,6 +14,7 @@ let agentMap = Array.from({ length: boardSize }, () =>
 );
 let hasGold = false;
 
+// Configuração de Eventos
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("startGame").addEventListener("click", startGame);
   document.getElementById("stopGame").addEventListener("click", stopGame);
@@ -24,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .addEventListener("change", changeBoardSize);
 });
 
+// Funções de Controle do Jogo
 function changeBoardSize(event) {
   boardSize = parseInt(event.target.value);
   initGame();
@@ -44,6 +47,7 @@ function restartGame() {
   initGame();
 }
 
+// Funções de Inicialização e Criação do Tabuleiro
 function initGame() {
   gameBoard = Array.from({ length: boardSize }, () =>
     new Array(boardSize).fill(null)
@@ -95,6 +99,7 @@ function createMiniMap() {
   updateMiniMap();
 }
 
+//Funções de Posicionamento de Itens e Agente
 function placeInitialItems() {
   const positions = {
     agent: { x: 0, y: 0 },
@@ -178,6 +183,7 @@ function placeItemAtPosition(type, position) {
   }
 }
 
+//Funções para Colocação de Brisas e Cheiros
 function placeBreezes(x, y) {
   const directions = [
     { x: -1, y: 0 },
@@ -234,6 +240,8 @@ function placeSmells(x, y) {
   });
 }
 
+// Funções de Exibição de Mensagens e Resultados do Jogo
+
 function displayMessage(message) {
   document.getElementById("messageDisplay").textContent = message;
 }
@@ -272,6 +280,7 @@ function toggleReport() {
   }
 }
 
+// Funções de Movimento e Inteligência do Agente
 function makeIntelligentMove() {
   const state = getGameState();
   let action;
@@ -383,6 +392,7 @@ function updateAgentPosition() {
   checkForEvents();
 }
 
+// Funções de Atualização do Mapa
 function updateAgentMap(x, y) {
   const cellType = gameBoard[x][y];
   agentMap[x][y] = cellType === null ? " " : cellType.charAt(0).toUpperCase();
@@ -438,6 +448,7 @@ function markPossibleWumpus(x, y) {
   deduceWumpusPosition();
 }
 
+//Funções de Dedução de Posições
 function deducePitPosition() {
   const breezePositions = [];
 
@@ -473,13 +484,11 @@ function deducePitPosition() {
     });
   });
 
-  // Identify the most likely pit positions
   const maxCount = Math.max(...Object.values(pitCandidates));
   const probablePits = Object.keys(pitCandidates).filter(
     (key) => pitCandidates[key] === maxCount
   );
 
-  // Clear all other possible pit positions
   for (let i = 0; i < boardSize; i++) {
     for (let j = 0; j < boardSize; j++) {
       if (agentMap[i][j] === "P" && !probablePits.includes(`${i},${j}`)) {
@@ -488,7 +497,6 @@ function deducePitPosition() {
     }
   }
 
-  // Confirm the pit positions
   probablePits.forEach((key) => {
     const [x, y] = key.split(",").map(Number);
     agentMap[x][y] = "P";
@@ -530,13 +538,11 @@ function deduceWumpusPosition() {
     });
   });
 
-  // Identify the most likely Wumpus positions
   const maxCount = Math.max(...Object.values(wumpusCandidates));
   const probableWumpus = Object.keys(wumpusCandidates).filter(
     (key) => wumpusCandidates[key] === maxCount
   );
 
-  // Clear all other possible Wumpus positions
   for (let i = 0; i < boardSize; i++) {
     for (let j = 0; j < boardSize; j++) {
       if (agentMap[i][j] === "W" && !probableWumpus.includes(`${i},${j}`)) {
@@ -545,13 +551,13 @@ function deduceWumpusPosition() {
     }
   }
 
-  // Confirm the Wumpus positions
   probableWumpus.forEach((key) => {
     const [x, y] = key.split(",").map(Number);
     agentMap[x][y] = "W";
   });
 }
 
+// Funções de Atualização do Mini Mapa
 function updateMiniMap() {
   for (let i = 0; i < boardSize; i++) {
     for (let j = 0; j < boardSize; j++) {
@@ -595,6 +601,7 @@ function updateMiniMap() {
   }
 }
 
+//Funções de Checagem de Eventos e Recompensas
 function checkForEvents() {
   const cellType = gameBoard[agentPosition.x][agentPosition.y];
   if (cellType === "wumpus" || cellType === "pit") {
