@@ -30,8 +30,6 @@ h1 {
     height: 400px;
     border: 1px solid #000;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(4, 1fr);
     gap: 5px;
     margin: 20px auto;
 }
@@ -48,8 +46,6 @@ h1 {
     height: 200px;
     border: 1px solid #000;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(4, 1fr);
     gap: 5px;
     margin: 10px;
 }
@@ -68,11 +64,6 @@ h1 {
     height: 100%;
     position: absolute;
     background-size: cover;
-}
-
-.miniCell img {
-    width: 50%;
-    height: 50%;
 }
 
 .agent {

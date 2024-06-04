@@ -99,7 +99,9 @@ function createMiniMap() {
   updateMiniMap();
 }
 
-//Funções de Posicionamento de Itens e Agente
+// Funções de Posicionamento de Itens e Agente
+
+// Etapa 1 - Gerador Aleatório de Ambientes do Mundo de Wumpus
 function placeInitialItems() {
   const positions = {
     agent: { x: 0, y: 0 },
@@ -156,6 +158,8 @@ function isPositionOccupied(x, y, existingPositions) {
   );
 }
 
+// Funções de Colocação de Brisas e Cheiros
+
 function placeAgent(position) {
   const agent = document.createElement("div");
   agent.className = "agent";
@@ -183,7 +187,6 @@ function placeItemAtPosition(type, position) {
   }
 }
 
-//Funções para Colocação de Brisas e Cheiros
 function placeBreezes(x, y) {
   const directions = [
     { x: -1, y: 0 },
@@ -239,6 +242,8 @@ function placeSmells(x, y) {
     }
   });
 }
+
+// Fim da Etapa 1 - Gerador Aleatório de Ambientes do Mundo de Wumpus
 
 // Funções de Exibição de Mensagens e Resultados do Jogo
 
@@ -448,7 +453,7 @@ function markPossibleWumpus(x, y) {
   deduceWumpusPosition();
 }
 
-//Funções de Dedução de Posições
+// Funções de Dedução de Posições
 function deducePitPosition() {
   const breezePositions = [];
 
@@ -601,7 +606,7 @@ function updateMiniMap() {
   }
 }
 
-//Funções de Checagem de Eventos e Recompensas
+// Funções de Checagem de Eventos e Recompensas
 function checkForEvents() {
   const cellType = gameBoard[agentPosition.x][agentPosition.y];
   if (cellType === "wumpus" || cellType === "pit") {

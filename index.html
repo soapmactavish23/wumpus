@@ -4,51 +4,58 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mundo de Wumpus</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      integrity="sha384-pzjw8f+ua7Kw1TIqjQ6pSAxU3p/ss43wRDnX+9C1F8y0Cpv+7MWPBIYYRSGO20p"
+      crossorigin="anonymous"
+    />
     <link rel="stylesheet" href="./css/styles.css" />
   </head>
   <body>
-    <h1>Mundo de Wumpus</h1>
-    <select id="boardSizeSelect">
-      <option value="4">4x4</option>
-      <option value="8">8x8</option>
-      <option value="16">16x16</option>
-    </select>
-    <div id="gameContainer">
-      <div id="gameBoard"></div>
-      <div id="miniMapContainer">
-        <h2>Visão do Wumpus</h2>
-        <div id="miniMap"></div>
+    <div class="container text-center mt-5">
+      <h1>Mundo de Wumpus</h1>
+      <select id="boardSizeSelect" class="custom-select w-auto d-inline-block">
+        <option value="4">4x4</option>
+        <option value="8">8x8</option>
+        <option value="16">16x16</option>
+      </select>
+      <div id="gameContainer" class="d-flex justify-content-center mt-4">
+        <div id="gameBoard"></div>
+        <div id="miniMapContainer" class="ml-4">
+          <h2>Visão do Wumpus</h2>
+          <div id="miniMap"></div>
+        </div>
       </div>
-    </div>
-    <span>
-      <button id="startGame">Iniciar Jogo</button>
-      <button id="stopGame">Parar Jogo</button>
-      <button id="restartGame">Reiniciar Jogo</button>
-      <button id="showReport">Ver Relatório</button>
-    </span>
-    <div id="messageDisplay"></div>
-
-    <!-- Modal -->
-    <div id="reportModal" class="modal">
-      <div class="modal-content">
-        <span class="close" id="closeModal">&times;</span>
-        <h2>Relatório de Partidas</h2>
-        <table id="historyTable">
-          <thead>
-            <tr>
-              <th>Partida</th>
-              <th>Resultado</th>
-              <th>Casas Visitadas</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+      <div class="mt-4">
+        <button id="startGame" class="btn btn-success">Iniciar Jogo</button>
+        <button id="stopGame" class="btn btn-danger">Parar Jogo</button>
+        <button id="restartGame" class="btn btn-warning">Reiniciar Jogo</button>
+        <button id="showReport" class="btn btn-primary">Ver Relatório</button>
       </div>
-    </div>
+      <div id="messageDisplay" class="mt-3"></div>
 
-    <footer style="background-color: #fff; color: black; padding: 10px">
-      Alunos: Henrick de Sousa Nogueira e Whebert Gonçalves da Silva
-    </footer>
+      <!-- Modal -->
+      <div id="reportModal" class="modal">
+        <div class="modal-content">
+          <span class="close" id="closeModal">&times;</span>
+          <h2>Relatório de Partidas</h2>
+          <table id="historyTable">
+            <thead>
+              <tr>
+                <th>Partida</th>
+                <th>Resultado</th>
+                <th>Casas Visitadas</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <footer class="mt-4">
+        Alunos: Henrick de Sousa Nogueira e Whebert Gonçalves da Silva
+      </footer>
+    </div>
     <script src="./scripts/game.js"></script>
   </body>
 </html>
