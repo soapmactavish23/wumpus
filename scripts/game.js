@@ -13,6 +13,12 @@ let agentMap = Array.from({ length: boardSize }, () =>
   new Array(boardSize).fill("?")
 );
 let hasGold = false;
+const fixedBoard = [
+  ["agent", null, null, "wumpus"],
+  [null, "pit", null, null],
+  [null, null, null, "pit"],
+  [null, "gold", null, null],
+];
 
 // Configuração de Eventos
 document.addEventListener("DOMContentLoaded", () => {
@@ -34,8 +40,8 @@ function changeBoardSize(event) {
 
 function startGame() {
   stopGame();
-  gameInterval = setInterval(makeIntelligentMove, 1000);
   initGame();
+  gameInterval = setInterval(makeIntelligentMove, 1000);
 }
 
 function stopGame() {
@@ -55,18 +61,44 @@ function initGame() {
   agentMap = Array.from({ length: boardSize }, () =>
     new Array(boardSize).fill("?")
   );
-  createBoard();
-  createMiniMap();
-  const initialPositions = placeInitialItems();
-  agentPosition = initialPositions.agent;
-  placeAgent(agentPosition);
-  placeItemAtPosition("home", { x: 0, y: 0, z: -1 });
+  const agentVersion = document.getElementById("agentVersion").value;
+  if (agentVersion === "1") {
+    createBoard();
+    createMiniMap();
+    const initialPositions = placeInitialItems();
+    agentPosition = initialPositions.agent;
+    placeAgent(agentPosition);
+    placeItemAtPosition("home", { x: 0, y: 0, z: -1 });
+  } else {
+    createFixedBoard();
+    createMiniMap();
+    placeFixedItems();
+    agentPosition = { x: 0, y: 0 };
+    placeAgent(agentPosition);
+    placeItemAtPosition("home", { x: 0, y: 0, z: -1 });
+  }
   visitsCount = 0;
   hasGold = false;
   displayMessage("Jogo iniciado. Boa sorte!");
 }
 
 function createBoard() {
+  const boardElement = document.getElementById("gameBoard");
+  boardElement.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
+  boardElement.style.gridTemplateRows = `repeat(${boardSize}, 1fr)`;
+  boardElement.innerHTML = "";
+  for (let i = 0; i < boardSize; i++) {
+    for (let j = 0; j < boardSize; j++) {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.dataset.x = i;
+      cell.dataset.y = j;
+      boardElement.appendChild(cell);
+    }
+  }
+}
+
+function createFixedBoard() {
   const boardElement = document.getElementById("gameBoard");
   boardElement.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
   boardElement.style.gridTemplateRows = `repeat(${boardSize}, 1fr)`;
@@ -140,6 +172,16 @@ function placeInitialItems() {
   return positions;
 }
 
+function placeFixedItems() {
+  for (let i = 0; i < fixedBoard.length; i++) {
+    for (let j = 0; j < fixedBoard[i].length; j++) {
+      if (fixedBoard[i][j] !== null) {
+        placeItemAtPosition(fixedBoard[i][j], { x: i, y: j });
+      }
+    }
+  }
+}
+
 function generateUniquePosition(existingPositions) {
   let x, y;
   do {
@@ -157,6 +199,10 @@ function isPositionOccupied(x, y, existingPositions) {
 }
 
 function placeAgent(position) {
+  const agentElement = document.querySelector(".agent");
+  if (agentElement) {
+    agentElement.remove();
+  }
   const agent = document.createElement("div");
   agent.className = "agent";
   const cell = document.querySelector(

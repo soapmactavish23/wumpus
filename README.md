@@ -16,6 +16,13 @@
 
 ## Metodologia
 
+### Funcionamento
+
+**Selecionar Versão do Agente**
+
+1. Versão 1: Na versão um o tabuleiro é gerado aleatoriamente, e o agente consegue presentir cheiro e vento e tentar identificar o wumpus.
+2. Versão 2: Na versão 2 o agente o tabuleiro não é modificado e o agente consegue "memorizar" o tabuleiro ao inicio de cada rodada.
+
 ### Etapa 1
 
 **Gerador Aleatório de Ambientes do Mundo de Wumpus:**
