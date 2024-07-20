@@ -1,18 +1,18 @@
 // game.js
 
 // Inicialização das Variáveis
-let visitsCount = 0;
-let gameBoard = [];
-let agentPosition = { x: 0, y: 0 };
-let boardSize = 4;
+var visitsCount = 0;
+var gameBoard = [];
+var agentPosition = { x: 0, y: 0 };
+var boardSize = 4;
 const learningRate = 0.1;
 const discountFactor = 0.9;
 const explorationRate = 0.2;
-let QTable = {};
-let gameHistory = [];
-let gameInterval;
-let agentMap = [];
-let hasGold = false;
+var QTable = {};
+var gameHistory = [];
+var gameInterval;
+var agentMap = [];
+var hasGold = false;
 
 // Configuração de Eventos
 document.addEventListener("DOMContentLoaded", () => {
