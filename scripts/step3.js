@@ -1,5 +1,3 @@
-// step3.js
-
 // Inicialização das Variáveis Específicas do Jogo
 function initGame() {
   gameBoard = Array.from({ length: boardSize }, () =>
@@ -199,7 +197,11 @@ function placeBreezes(x, y) {
       newY < boardSize &&
       !gameBoard[newX][newY]
     ) {
-      gameBoard[newX][newY] = "breeze";
+      if (!gameBoard[newX][newY]) {
+        gameBoard[newX][newY] = "breeze";
+      } else if (gameBoard[newX][newY] === "smell") {
+        gameBoard[newX][newY] = "breeze_smell";
+      }
       const cell = document.querySelector(
         `[data-x='${newX}'][data-y='${newY}']`
       );
@@ -227,7 +229,11 @@ function placeSmells(x, y) {
       newY < boardSize &&
       !gameBoard[newX][newY]
     ) {
-      gameBoard[newX][newY] = "smell";
+      if (!gameBoard[newX][newY]) {
+        gameBoard[newX][newY] = "smell";
+      } else if (gameBoard[newX][newY] === "breeze") {
+        gameBoard[newX][newY] = "breeze_smell";
+      }
       const cell = document.querySelector(
         `[data-x='${newX}'][data-y='${newY}']`
       );
