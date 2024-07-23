@@ -68,11 +68,11 @@ function initGame() {
 
   if (savedBoardState) {
     loadBoardState();
-  } else {
-    visitsCount = 0;
-    hasGold = false;
-    displayMessage("Jogo iniciado. Boa sorte!");
   }
+
+  visitsCount = 0;
+  hasGold = false;
+  displayMessage("Jogo iniciado. Boa sorte!");
 }
 
 function createBoard() {
