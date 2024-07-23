@@ -1,4 +1,48 @@
-// Inicialização das Variáveis Específicas do Jogo
+agentMap = Array.from({ length: boardSize }, () =>
+  new Array(boardSize).fill("?")
+);
+
+const fixedBoard = [
+  ["agent", null, null, "wumpus"],
+  [null, "pit", null, null],
+  [null, null, null, "pit"],
+  [null, "gold", null, null],
+];
+
+// Configuração de Eventos
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("startGame").addEventListener("click", startGame);
+  document.getElementById("stopGame").addEventListener("click", stopGame);
+  document.getElementById("restartGame").addEventListener("click", restartGame);
+  document.getElementById("showReport").addEventListener("click", toggleReport);
+  document.getElementById("closeModal").addEventListener("click", toggleReport);
+  document
+    .getElementById("boardSizeSelect")
+    .addEventListener("change", changeBoardSize);
+});
+
+// Funções de Controle do Jogo
+function changeBoardSize(event) {
+  boardSize = parseInt(event.target.value);
+  initGame();
+}
+
+function startGame() {
+  stopGame();
+  initGame();
+  gameInterval = setInterval(makeIntelligentMove, 1000);
+}
+
+function stopGame() {
+  clearInterval(gameInterval);
+}
+
+function restartGame() {
+  stopGame();
+  initGame();
+}
+
+// Funções de Inicialização e Criação do Tabuleiro
 function initGame() {
   gameBoard = Array.from({ length: boardSize }, () =>
     new Array(boardSize).fill(null)
@@ -6,17 +50,24 @@ function initGame() {
   agentMap = Array.from({ length: boardSize }, () =>
     new Array(boardSize).fill("?")
   );
-
-  createBoard();
-  createMiniMap();
-  const initialPositions = generateRandomEnvironment();
-  agentPosition = initialPositions.agent;
-  placeAgent(agentPosition);
-  placeItemAtPosition("home", { x: 0, y: 0 });
+  const agentVersion = document.getElementById("agentVersion").value;
+  if (agentVersion === "1") {
+    createBoard();
+    createMiniMap();
+    const initialPositions = placeInitialItems();
+    agentPosition = initialPositions.agent;
+    placeAgent(agentPosition);
+    placeItemAtPosition("home", { x: 0, y: 0, z: -1 });
+  } else {
+    createFixedBoard();
+    createMiniMap();
+    placeFixedItems();
+    agentPosition = { x: 0, y: 0 };
+    placeAgent(agentPosition);
+    placeItemAtPosition("home", { x: 0, y: 0, z: -1 });
+  }
   visitsCount = 0;
   hasGold = false;
-  hasArrow = true; // Inicialização da flecha
-  saveAgentMapToSessionStorage();
   displayMessage("Jogo iniciado. Boa sorte!");
 }
 
@@ -36,11 +87,25 @@ function createBoard() {
   }
 }
 
-function createMiniMap() {
-  const miniMapContainer = document.getElementById("miniMapContainer");
-  miniMapContainer.style.display = "block";
+function createFixedBoard() {
+  const boardElement = document.getElementById("gameBoard");
+  boardElement.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
+  boardElement.style.gridTemplateRows = `repeat(${boardSize}, 1fr)`;
+  boardElement.innerHTML = "";
+  for (let i = 0; i < boardSize; i++) {
+    for (let j = 0; j < boardSize; j++) {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.dataset.x = i;
+      cell.dataset.y = j;
+      boardElement.appendChild(cell);
+    }
+  }
+}
 
+function createMiniMap() {
   const miniMapElement = document.getElementById("miniMap");
+  miniMapContainer.style.display = "block"; // Mostrar o minimapa para a versão 3
   miniMapElement.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
   miniMapElement.style.gridTemplateRows = `repeat(${boardSize}, 1fr)`;
   miniMapElement.innerHTML = "";
@@ -56,52 +121,8 @@ function createMiniMap() {
   updateMiniMap();
 }
 
-function updateMiniMap() {
-  const miniMapElement = document.getElementById("miniMap");
-  if (!miniMapElement) return; // Adicionado para garantir que o miniMap exista
-  for (let i = 0; i < boardSize; i++) {
-    for (let j = 0; j < boardSize; j++) {
-      const cell = document.querySelector(
-        `#miniMap .miniCell[data-x='${i}'][data-y='${j}']`
-      );
-      cell.innerHTML = "";
-      cell.style.backgroundSize = "contain";
-      cell.style.backgroundRepeat = "no-repeat";
-      cell.style.backgroundPosition = "center";
-      switch (agentMap[i][j]) {
-        case "A":
-          cell.style.backgroundImage = "url('./images/player.png')";
-          break;
-        case "G":
-          cell.style.backgroundImage = "url('./images/gold.png')";
-          break;
-        case "W":
-          cell.style.backgroundImage = "url('./images/wumpus.png')";
-          break;
-        case "P":
-          cell.style.backgroundImage = "url('./images/buraco.png')";
-          break;
-        case "B":
-          cell.style.backgroundImage = "url('./images/vento.png')";
-          break;
-        case "S":
-          cell.style.backgroundImage = "url('./images/smell.png')";
-          break;
-        case "H":
-          cell.style.backgroundImage = "url('./images/home.png')";
-          break;
-        case " ":
-          cell.style.backgroundImage = "none";
-          break;
-        default:
-          cell.style.backgroundImage = "url('./images/interrogacao.png')";
-          break;
-      }
-    }
-  }
-}
-
-function generateRandomEnvironment() {
+//Funções de Posicionamento de Itens e Agente
+function placeInitialItems() {
   const positions = {
     agent: { x: 0, y: 0 },
     gold: generateUniquePosition([]),
@@ -111,7 +132,15 @@ function generateRandomEnvironment() {
 
   positions.wumpus = generateUniquePosition([positions.gold]);
 
-  let numberOfPits = Math.floor(boardSize / 2);
+  let numberOfPits = 1;
+
+  if (boardSize == 4) {
+    numberOfPits = 1;
+  } else if (boardSize == 8) {
+    numberOfPits = 4;
+  } else if (boardSize == 16) {
+    numberOfPits = 8;
+  }
 
   for (let i = 0; i < numberOfPits; i++) {
     positions.pits.push(
@@ -131,6 +160,16 @@ function generateRandomEnvironment() {
   });
 
   return positions;
+}
+
+function placeFixedItems() {
+  for (let i = 0; i < fixedBoard.length; i++) {
+    for (let j = 0; j < fixedBoard[i].length; j++) {
+      if (fixedBoard[i][j] !== null) {
+        placeItemAtPosition(fixedBoard[i][j], { x: i, y: j });
+      }
+    }
+  }
 }
 
 function generateUniquePosition(existingPositions) {
@@ -180,6 +219,7 @@ function placeItemAtPosition(type, position) {
   }
 }
 
+//Funções para Colocação de Brisas e Cheiros
 function placeBreezes(x, y) {
   const directions = [
     { x: -1, y: 0 },
@@ -197,11 +237,7 @@ function placeBreezes(x, y) {
       newY < boardSize &&
       !gameBoard[newX][newY]
     ) {
-      if (!gameBoard[newX][newY]) {
-        gameBoard[newX][newY] = "breeze";
-      } else if (gameBoard[newX][newY] === "smell") {
-        gameBoard[newX][newY] = "breeze_smell";
-      }
+      gameBoard[newX][newY] = "breeze";
       const cell = document.querySelector(
         `[data-x='${newX}'][data-y='${newY}']`
       );
@@ -229,11 +265,7 @@ function placeSmells(x, y) {
       newY < boardSize &&
       !gameBoard[newX][newY]
     ) {
-      if (!gameBoard[newX][newY]) {
-        gameBoard[newX][newY] = "smell";
-      } else if (gameBoard[newX][newY] === "breeze") {
-        gameBoard[newX][newY] = "breeze_smell";
-      }
+      gameBoard[newX][newY] = "smell";
       const cell = document.querySelector(
         `[data-x='${newX}'][data-y='${newY}']`
       );
@@ -244,6 +276,159 @@ function placeSmells(x, y) {
   });
 }
 
+// Funções de Exibição de Mensagens e Resultados do Jogo
+
+function displayMessage(message) {
+  document.getElementById("messageDisplay").textContent = message;
+}
+
+function recordGameResult(result) {
+  gameHistory.push({
+    result: result,
+    moves: visitsCount,
+  });
+  updateHistoryTable();
+  displayMessage(`Você ${result.toLowerCase()}!`);
+}
+
+function updateHistoryTable() {
+  const tbody = document
+    .getElementById("historyTable")
+    .getElementsByTagName("tbody")[0];
+  tbody.innerHTML = "";
+  gameHistory.forEach((game, index) => {
+    let row = tbody.insertRow();
+    let cell1 = row.insertCell(0);
+    let cell2 = row.insertCell(1);
+    let cell3 = row.insertCell(2);
+    cell1.innerHTML = index + 1;
+    cell2.innerHTML = game.result;
+    cell3.innerHTML = game.moves;
+  });
+}
+
+function toggleReport() {
+  const reportModal = document.getElementById("reportModal");
+  if (reportModal.style.display === "block") {
+    reportModal.style.display = "none";
+  } else {
+    reportModal.style.display = "block";
+  }
+}
+
+// Funções de Movimento e Inteligência do Agente
+function makeIntelligentMove() {
+  const state = getGameState();
+  let action;
+  if (hasGold) {
+    action = chooseActionForReturn();
+  } else {
+    action = chooseAction(state);
+  }
+  gameStep(action);
+}
+
+function getGameState() {
+  return `x${agentPosition.x}y${agentPosition.y}`;
+}
+
+function chooseAction(state) {
+  const actions = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
+  const safeActions = actions.filter((action) => {
+    const [newX, newY] = getNewPosition(
+      agentPosition.x,
+      agentPosition.y,
+      action
+    );
+    return (
+      isValidPosition(newX, newY) &&
+      agentMap[newX][newY] !== "P" &&
+      agentMap[newX][newY] !== "W"
+    );
+  });
+
+  if (safeActions.length > 0) {
+    return prioritizeNewPositions(safeActions);
+  } else if (Math.random() < explorationRate) {
+    return actions[Math.floor(Math.random() * actions.length)];
+  } else {
+    if (!QTable[state]) {
+      QTable[state] = {};
+      actions.forEach((action) => (QTable[state][action] = 0));
+    }
+    return Object.keys(QTable[state]).reduce((a, b) =>
+      QTable[state][a] > QTable[state][b] ? a : b
+    );
+  }
+}
+
+function prioritizeNewPositions(actions) {
+  const newPositions = actions.filter((action) => {
+    const [newX, newY] = getNewPosition(
+      agentPosition.x,
+      agentPosition.y,
+      action
+    );
+    return agentMap[newX][newY] === "?";
+  });
+  return newPositions.length > 0
+    ? newPositions[Math.floor(Math.random() * newPositions.length)]
+    : actions[Math.floor(Math.random() * actions.length)];
+}
+
+function getNewPosition(x, y, action) {
+  const movements = {
+    ArrowUp: { x: -1, y: 0 },
+    ArrowDown: { x: 1, y: 0 },
+    ArrowLeft: { x: 0, y: -1 },
+    ArrowRight: { x: 0, y: 1 },
+  };
+  const move = movements[action];
+  return [x + move.x, y + move.y];
+}
+
+function isValidPosition(x, y) {
+  return x >= 0 && x < boardSize && y >= 0 && y < boardSize;
+}
+
+function gameStep(action) {
+  const prevState = getGameState();
+  moveAgent(action);
+  const newState = getGameState();
+  const reward = getReward(newState);
+  updateQTable(prevState, action, reward, newState);
+}
+
+function moveAgent(direction) {
+  const [newX, newY] = getNewPosition(
+    agentPosition.x,
+    agentPosition.y,
+    direction
+  );
+  if (isValidPosition(newX, newY)) {
+    agentPosition.x = newX;
+    agentPosition.y = newY;
+    updateAgentPosition();
+  }
+}
+
+function updateAgentPosition() {
+  const agentElement = document.querySelector(".agent");
+  if (agentElement) {
+    agentElement.remove();
+  }
+  const agent = document.createElement("div");
+  agent.className = "agent";
+  const cell = document.querySelector(
+    `[data-x='${agentPosition.x}'][data-y='${agentPosition.y}']`
+  );
+  cell.appendChild(agent);
+  visitsCount++;
+  updateAgentMap(agentPosition.x, agentPosition.y);
+  checkForEvents();
+}
+
+// Funções de Atualização do Mapa
 function updateAgentMap(x, y) {
   const cellType = gameBoard[x][y];
   agentMap[x][y] = cellType === null ? " " : cellType.charAt(0).toUpperCase();
@@ -255,7 +440,6 @@ function updateAgentMap(x, y) {
   deducePitPosition();
   deduceWumpusPosition();
   updateMiniMap();
-  saveAgentMapToSessionStorage();
 }
 
 function markPossiblePits(x, y) {
@@ -300,6 +484,7 @@ function markPossibleWumpus(x, y) {
   deduceWumpusPosition();
 }
 
+//Funções de Dedução de Posições
 function deducePitPosition() {
   const breezePositions = [];
 
@@ -408,137 +593,51 @@ function deduceWumpusPosition() {
   });
 }
 
-function displayMessage(message) {
-  document.getElementById("messageDisplay").textContent = message;
-}
-
-function recordGameResult(result) {
-  gameHistory.push({
-    result: result,
-    moves: visitsCount,
-  });
-  updateHistoryTable();
-  displayMessage(`Você ${result.toLowerCase()}!`);
-}
-
-function updateHistoryTable() {
-  const tbody = document
-    .getElementById("historyTable")
-    .getElementsByTagName("tbody")[0];
-  tbody.innerHTML = "";
-  gameHistory.forEach((game, index) => {
-    let row = tbody.insertRow();
-    let cell1 = row.insertCell(0);
-    let cell2 = row.insertCell(1);
-    let cell3 = row.insertCell(2);
-    cell1.innerHTML = index + 1;
-    cell2.innerHTML = game.result;
-    cell3.innerHTML = game.moves;
-  });
-}
-
-function makeIntelligentMove() {
-  const perceptions = getCurrentPerceptions();
-  const action = chooseActionBasedOnPerceptions(perceptions);
-  gameStep(action);
-}
-
-function getCurrentPerceptions() {
-  const { x, y } = agentPosition;
-  const perceptions = {
-    breeze: gameBoard[x][y] === "breeze",
-    smell: gameBoard[x][y] === "smell",
-    glitter: gameBoard[x][y] === "gold",
-    bump: !isValidPosition(x, y),
-  };
-  return perceptions;
-}
-
-function chooseActionBasedOnPerceptions(perceptions) {
-  const currentState = getGameState();
-  if (!QTable[currentState]) {
-    QTable[currentState] = {};
-    ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].forEach(
-      (action) => (QTable[currentState][action] = 0)
-    );
-  }
-
-  const actions = Object.keys(QTable[currentState]);
-  const qValues = actions.map((action) => QTable[currentState][action]);
-  const maxQValue = Math.max(...qValues);
-
-  if (Math.random() < 0.1) {
-    // 10% de chance de explorar uma ação aleatória
-    return actions[Math.floor(Math.random() * actions.length)];
-  } else {
-    // 90% de chance de escolher a melhor ação com base nos valores Q
-    return actions[qValues.indexOf(maxQValue)];
-  }
-}
-
-function getNewPosition(x, y, action) {
-  const movements = {
-    ArrowUp: { x: -1, y: 0 },
-    ArrowDown: { x: 1, y: 0 },
-    ArrowLeft: { x: 0, y: -1 },
-    ArrowRight: { x: 0, y: 1 },
-  };
-  const move = movements[action];
-  return [x + move.x, y + move.y];
-}
-
-function isValidPosition(x, y) {
-  return x >= 0 && x < boardSize && y >= 0 && y < boardSize;
-}
-
-function gameStep(action) {
-  if (action === "grab") {
-    if (gameBoard[agentPosition.x][agentPosition.y] === "gold") {
-      hasGold = true;
-      gameBoard[agentPosition.x][agentPosition.y] = null;
-      displayMessage("Tesouro encontrado! Voltando para casa...");
+// Funções de Atualização do Mini Mapa
+function updateMiniMap() {
+  for (let i = 0; i < boardSize; i++) {
+    for (let j = 0; j < boardSize; j++) {
+      const cell = document.querySelector(
+        `#miniMap .miniCell[data-x='${i}'][data-y='${j}']`
+      );
+      cell.innerHTML = "";
+      cell.style.backgroundSize = "contain";
+      cell.style.backgroundRepeat = "no-repeat";
+      cell.style.backgroundPosition = "center";
+      switch (agentMap[i][j]) {
+        case "A":
+          cell.style.backgroundImage = "url('./images/player.png')";
+          break;
+        case "G":
+          cell.style.backgroundImage = "url('./images/gold.png')";
+          break;
+        case "W":
+          cell.style.backgroundImage = "url('./images/wumpus.png')";
+          break;
+        case "P":
+          cell.style.backgroundImage = "url('./images/buraco.png')";
+          break;
+        case "B":
+          cell.style.backgroundImage = "url('./images/vento.png')";
+          break;
+        case "S":
+          cell.style.backgroundImage = "url('./images/smell.png')";
+          break;
+        case "H":
+          cell.style.backgroundImage = "url('./images/home.png')";
+          break;
+        case " ":
+          cell.style.backgroundImage = "none";
+          break;
+        default:
+          cell.style.backgroundImage = "url('./images/interrogacao.png')";
+          break;
+      }
     }
-  } else if (action === "shoot") {
-    // Implementar a lógica para atirar uma flecha
-    displayMessage("Você atirou uma flecha!");
-  } else {
-    const prevState = getGameState();
-    moveAgent(action);
-    const newState = getGameState();
-    const reward = getReward(newState);
-    updateQTable(prevState, action, reward, newState);
   }
 }
 
-function moveAgent(direction) {
-  const [newX, newY] = getNewPosition(
-    agentPosition.x,
-    agentPosition.y,
-    direction
-  );
-  if (isValidPosition(newX, newY)) {
-    agentPosition.x = newX;
-    agentPosition.y = newY;
-    updateAgentPosition();
-  }
-}
-
-function updateAgentPosition() {
-  const agentElement = document.querySelector(".agent");
-  if (agentElement) {
-    agentElement.remove();
-  }
-  const agent = document.createElement("div");
-  agent.className = "agent";
-  const cell = document.querySelector(
-    `[data-x='${agentPosition.x}'][data-y='${agentPosition.y}']`
-  );
-  cell.appendChild(agent);
-  visitsCount++;
-  updateAgentMap(agentPosition.x, agentPosition.y);
-  checkForEvents();
-}
-
+//Funções de Checagem de Eventos e Recompensas
 function checkForEvents() {
   const cellType = gameBoard[agentPosition.x][agentPosition.y];
   if (cellType === "wumpus" || cellType === "pit") {
@@ -600,8 +699,8 @@ function chooseActionForReturn() {
         distance: manhattanDistance(newX, newY, 0, 0),
         isValid:
           isValidPosition(newX, newY) &&
-          gameBoard[newX][newY] !== "P" &&
-          gameBoard[newX][newY] !== "W",
+          agentMap[newX][newY] !== "P" &&
+          agentMap[newX][newY] !== "W",
       };
     })
     .filter((item) => item.isValid);
@@ -611,26 +710,3 @@ function chooseActionForReturn() {
     ? distances[0].action
     : actions[Math.floor(Math.random() * actions.length)];
 }
-
-// Função para salvar o mapa do agente no sessionStorage
-function saveAgentMapToSessionStorage() {
-  sessionStorage.setItem("agentMap", JSON.stringify(agentMap));
-}
-
-// Função para carregar o mapa do agente do sessionStorage
-function loadAgentMapFromSessionStorage() {
-  const storedAgentMap = sessionStorage.getItem("agentMap");
-  if (storedAgentMap) {
-    agentMap = JSON.parse(storedAgentMap);
-    updateMiniMap();
-  }
-}
-
-// Chame a função para carregar o mapa do agente quando a página for carregada
-document.addEventListener("DOMContentLoaded", loadAgentMapFromSessionStorage);
-
-// Adicione um evento para o botão de reiniciar o jogo
-document.getElementById("restartButton").addEventListener("click", () => {
-  sessionStorage.clear();
-  initGame();
-});
