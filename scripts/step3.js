@@ -3,10 +3,10 @@ agentMap = Array.from({ length: boardSize }, () =>
 );
 
 const fixedBoard = [
-  ["agent", null, null, "wumpus"],
-  [null, "pit", null, null],
-  [null, null, null, "pit"],
-  [null, "gold", null, null],
+  ["agent", "breeze", "smell", "wumpus"],
+  ["breeze", "pit", "breeze", "smell"],
+  [null, "breeze", "breeze", "pit"],
+  [null, "gold", null, "breeze"],
 ];
 
 // Configuração de Eventos
@@ -44,31 +44,35 @@ function restartGame() {
 
 // Funções de Inicialização e Criação do Tabuleiro
 function initGame() {
-  gameBoard = Array.from({ length: boardSize }, () =>
-    new Array(boardSize).fill(null)
-  );
-  agentMap = Array.from({ length: boardSize }, () =>
-    new Array(boardSize).fill("?")
-  );
-  const agentVersion = document.getElementById("agentVersion").value;
-  if (agentVersion === "1") {
-    createBoard();
-    createMiniMap();
-    const initialPositions = placeInitialItems();
-    agentPosition = initialPositions.agent;
-    placeAgent(agentPosition);
-    placeItemAtPosition("home", { x: 0, y: 0, z: -1 });
+  const savedBoardState = JSON.parse(sessionStorage.getItem("boardState"));
+  if (savedBoardState) {
+    gameBoard = savedBoardState.gameBoard;
+    agentMap = savedBoardState.agentMap;
+    agentPosition = savedBoardState.agentPosition;
   } else {
-    createFixedBoard();
-    createMiniMap();
-    placeFixedItems();
-    agentPosition = { x: 0, y: 0 };
-    placeAgent(agentPosition);
-    placeItemAtPosition("home", { x: 0, y: 0, z: -1 });
+    gameBoard = Array.from({ length: boardSize }, () =>
+      new Array(boardSize).fill(null)
+    );
+    agentMap = Array.from({ length: boardSize }, () =>
+      new Array(boardSize).fill("?")
+    );
+    agentPosition = { x: 0, y: 0 }; // posição inicial padrão do agente
   }
-  visitsCount = 0;
-  hasGold = false;
-  displayMessage("Jogo iniciado. Boa sorte!");
+
+  createFixedBoard();
+  createMiniMap();
+  placeFixedItems();
+  agentPosition = { x: 0, y: 0 };
+  placeAgent(agentPosition);
+  placeItemAtPosition("home", { x: 0, y: 0, z: -1 });
+
+  if (savedBoardState) {
+    loadBoardState();
+  } else {
+    visitsCount = 0;
+    hasGold = false;
+    displayMessage("Jogo iniciado. Boa sorte!");
+  }
 }
 
 function createBoard() {
@@ -206,6 +210,7 @@ function placeAgent(position) {
 
 function placeItemAtPosition(type, position) {
   gameBoard[position.x][position.y] = type;
+  agentMap[position.x][position.y] = type.charAt(0).toUpperCase();
   const cell = document.querySelector(
     `[data-x='${position.x}'][data-y='${position.y}']`
   );
@@ -217,6 +222,7 @@ function placeItemAtPosition(type, position) {
   } else if (type === "wumpus") {
     placeSmells(position.x, position.y);
   }
+  saveBoardState(); // Salvar estado após colocação do item
 }
 
 //Funções para Colocação de Brisas e Cheiros
@@ -409,6 +415,7 @@ function moveAgent(direction) {
     agentPosition.x = newX;
     agentPosition.y = newY;
     updateAgentPosition();
+    saveBoardState(); // Salvar estado após movimentação
   }
 }
 
@@ -709,4 +716,23 @@ function chooseActionForReturn() {
   return distances.length > 0
     ? distances[0].action
     : actions[Math.floor(Math.random() * actions.length)];
+}
+
+function saveBoardState() {
+  const boardState = {
+    gameBoard: gameBoard,
+    agentMap: agentMap,
+    agentPosition: agentPosition,
+  };
+  sessionStorage.setItem("boardState", JSON.stringify(boardState));
+}
+
+function loadBoardState() {
+  const savedBoardState = JSON.parse(sessionStorage.getItem("boardState"));
+  if (savedBoardState) {
+    gameBoard = savedBoardState.gameBoard;
+    agentMap = savedBoardState.agentMap;
+    agentPosition = savedBoardState.agentPosition;
+    updateMiniMap();
+  }
 }
